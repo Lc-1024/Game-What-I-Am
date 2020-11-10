@@ -1,3 +1,10 @@
+# my ignore
+reference/
+*.jpg
+*.png
+*.pdf
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
