@@ -14,33 +14,6 @@ class master:
         self.attack = False # 小怪是否在攻击主角
         self.time = 0 # 为了防止小怪走太快，只有在time为30的倍数的时候才会移动
 
-# 子弹类
-class bullet:
-    def __init__(self, x0, y0, d0):
-        self.x = x0
-        self.y = y0
-        self.d = d0
-        self.alive = True
-        self.time = 0  # 为了防止子弹飞太快，只有在time为10的倍数的时候才会移动
-        # 判断是否在墙内生成
-        if [x0, y0] in Wall:
-            self.alive = False
-
-
-class things:
-    def __init__(self, x0, y0):
-        self.x = x0
-        self.y = y0
-
-'''
-# TODO 设计游戏
-# 第一关，进入人体，如果输入2，则表示进入躯干，如果输入3，则表示进入头部    
-def first_game(t):
-
-
-
-'''
-
 
 # 第一个小游戏，细菌从皮肤破损中进入人体
 def first_game(play_sur_face):
@@ -150,9 +123,9 @@ def first_game(play_sur_face):
 
 
 # 贪吃蛇
-def snake_game(play_sur_face, snake, num):
+def snake_game(play_sur_face, level, num):
     # 生成食物并且不让食物生成在细菌的身体里面
-    def gen_food():
+    def gen():
         while True:
             pos = [random.randint(0, 29)*20, random.randint(0, 29)*20]
             if germ[0] == pos[0] and germ[1] == pos[1]:
@@ -162,80 +135,98 @@ def snake_game(play_sur_face, snake, num):
         return pos
 
     germ = [200, 200]
+    food = gen()
+    cell = []
+    dx = [[20,0], [-20,0], [0,-20], [0,20], [0,0]]
+
     # 颜色可以自定义
     germ_color = (0, 158, 128)
     food_color = (255, 255, 0)
-    # 食物坐标
-    food = gen_food()
-    # 食物颜色
+    cell_color = (0, 0, 0)
 
-    # 设置帧频率
+    font = pygame.font.SysFont("", 20) # 20 -- 字体大小
+    def show_num(a):
+        return font.render("Num of germ: "+str(num), True, (0, 0, 0)) # True -- 锯齿边
+    play_sur_face.blit(show_num(num), (20, 550))
+
     clock = pygame.time.Clock()
-    direction = 'd'
+    di = 0
     time = 0
-    time_gap = 10
+    time_gap = 10 - level
     while True:
         # 处理帧频 锁帧
         clock.tick(60)
         time += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return snake, num
+                return level, num
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     if num != 1:
-                        num = int(0.5*num)
-                    return snake, num
+                        num = int((0.8+0.02*level)*num)
+                    return level, num
                 if event.key == K_RIGHT or event.key == ord('d'):
-                    direction = 'd'
+                    di = 0
                 if event.key == K_LEFT or event.key == ord('a'):
-                    direction = 'a'
+                    di = 1
                 if event.key == K_UP or event.key == ord('w'):
-                    direction = "w"
+                    di = 2
                 if event.key == K_DOWN or event.key == ord('s'):
-                    direction = 's'
-
+                    di = 3
+                if event.key == ord('l'):
+                    num *= 2
+        
+        # 移动一下
+        if time % time_gap == 0:
+            germ[0] += dx[di][0]
+            germ[1] += dx[di][1]
+            
         # 处理细菌数量
         if germ[0] == food[0] and germ[1] == food[1]:
-            food = gen_food()
+            food = gen()
             if num <= 10:
-                num += 1
+                num += 2
+            elif num <= 20 * (100 ** level):
+                num = int(num * 1.25)
             else:
                 num = int(num * 1.1)
 
-        # 移动一下
-        if direction == "d" and time % time_gap == 0:
-            germ[0] += 20
-        if direction == "a" and time % time_gap == 0:
-            germ[0] -= 20
-        if direction == "w" and time % time_gap == 0:
-            germ[1] -= 20
-        if direction == "s" and time % time_gap == 0:
-            germ[1] += 20
-            
-        # 判定越界：折半返回
+        if num >= 100 ** (level+1):
+            return level+1, num
+        while num / (100 ** level) * (level+1) / 10 >= len(cell):
+            cell.append(gen())
+
+        # 判定越界：数量折半
         if germ[0] < 0 or germ[1] < 0 or germ[0] >= 600 or germ[1] >= 600:
             if num != 1:
                 num = int(0.5*num)
-            return snake+1, num
-        '''
-        # 判定被保卫细胞发现：数量变为0.9
-        for body in snake:
-            if head.clo == body.clo and head.row == body.row:
-                num = int(0.9*num)
+            return level, num
+        
+        for i in range(len(cell)):
+            if time % (20 - level) == i % (10 - level):
+                tmp = random.randint(0, 4)
+                if 0 <= cell[i][0] + dx[tmp][0] <= 580 and 0 <= cell[i][1] + dx[tmp][1] <= 580:
+                     cell[i][0] += dx[tmp][0]
+                     cell[i][1] += dx[tmp][1]
+
+        # 判定被保卫细胞发现：数量变为0.8
+        if germ in cell and time % time_gap == 0:
+            num = int((0.8+0.02*level)*num) + 1
         if num == 0:
-            return snake, 0
-        '''
-        # 背景画图
+            return level, 0
+
         pygame.draw.rect(play_sur_face, (245, 135, 155), (0, 0, 600, 600))
-        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
+        for c in cell:
+            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
         pygame.draw.rect(play_sur_face, food_color, (food[0], food[1], 20, 20))
-        # 交还控制权
+        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
+        play_sur_face.blit(show_num(num), (20, 550))
+        play_sur_face.blit(font.render("Num of cell: "+str(len(cell)), True, (0, 0, 0)), (20, 570))
         pygame.display.flip()
 
-    return snake+1, num
+    return level+1, num
 
-# 吃豆人
+# TODO 吃豆人
 def beens_game():
     # 第一关的初始化
     # 主角
