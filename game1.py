@@ -47,7 +47,7 @@ def wait_to_continue():
 class game:
     def __init__(self):
         self.place = 1          # 1体外；2身体；3心肺；4肠胃；5大脑
-        self.sum = 1            # 细菌数量
+        self.num = 1            # 细菌数量
         self.time = 0
         self.alive = True
         self.rect_size = [(405, 200, 20, 20)]
@@ -92,9 +92,9 @@ class game:
             self.place = 5
         
         if self.rect_size[0][0] + self.rect_size[0][2] > mouse[0] > self.rect_size[0][0] and self.rect_size[0][1] + self.rect_size[0][3] > mouse[1] > self.rect_size[0][1]:
-            self.snake, self.sum = subgame.snake_game(play_sur_face, self.snake, self.sum)
+            self.snake, self.num = subgame.snake_game(play_sur_face, self.snake, self.num)
         if self.rect_size[1][0] + self.rect_size[1][2] > mouse[0] > self.rect_size[1][0] and self.rect_size[1][1] + self.rect_size[1][3] > mouse[1] > self.rect_size[1][1]:
-            self.beens, self.sum = subgame.beens_game(play_sur_face, self.beens, self.sum)
+            self.beens, self.num = subgame.beens_game(play_sur_face, self.beens, self.num)
         if self.rect_size[2][0] + self.rect_size[2][2] > mouse[0] > self.rect_size[2][0] and self.rect_size[2][1] + self.rect_size[2][3] > mouse[1] > self.rect_size[2][1]:
             self.snake = subgame.first_game(play_sur_face)
       
@@ -143,12 +143,12 @@ while germ.first == False:
     play_sur_face.blit(pygame.image.load("image/out.jpg"), (0, 0))
     # 检测退出
     for event in pygame.event.get():
-        print(event)
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
         elif event.type == MOUSEBUTTONDOWN:
             mouse = pygame.mouse.get_pos()
+            print(event)
             if germ.rect_size[0][0] + germ.rect_size[0][2] > mouse[0] > germ.rect_size[0][0] and germ.rect_size[0][1] + germ.rect_size[0][3] > mouse[1] > germ.rect_size[0][1]:
                 germ.first = subgame.first_game(play_sur_face)
         # 回车进入身体，esc退出
@@ -175,12 +175,12 @@ while germ.alive:
     clock.tick(60)
     germ.show()# 检测退出
     for event in pygame.event.get():
-        print(event)
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
         elif event.type == MOUSEBUTTONDOWN:
             mouse = pygame.mouse.get_pos()
+            print(event)
             # 如果click则判断是否敲击
             if germ.click(mouse):
                 germ.first = subgame.first_game(play_sur_face)
@@ -190,10 +190,6 @@ while germ.alive:
             if event.key == K_ESCAPE:  
                 pygame.quit()
                 sys.exit()
-            elif event.key == ord('l'):
-                germ.first = True
-            else:
-                germ.first = subgame.first_game(play_sur_face)
     mouse = pygame.mouse.get_pos()
     for i in range(len(germ.rect_size)):
         if germ.rect_size[i][0] + germ.rect_size[i][2] > mouse[0] > germ.rect_size[i][0] and germ.rect_size[i][1] + germ.rect_size[i][3] > mouse[1] > germ.rect_size[i][1]:
