@@ -150,135 +150,90 @@ def first_game(play_sur_face):
 
 
 # 贪吃蛇
-def snake_game(play_sur_face, a):
-    class Point():
-        row = 0
-        clo = 0
-
-        def __init__(self, row, clo):
-            self.row = row
-            self.clo = clo
-
-        def copy(self):
-            return Point(row=self.row, clo=self.clo)
-
-    # 初始化
-    pygame.init()
-    width = 600
-    hight = 600
-
-    ROW = 30
-    CLO = 40
-
-    # 蛇头坐标定在中间
-    head = Point(row=int(ROW / 2), clo=int(CLO / 2))
-    # 初始化蛇身的元素数量
-    snake = [
-        Point(row=head.row, clo=head.clo + 1),
-        Point(row=head.row, clo=head.clo + 2),
-        Point(row=head.row, clo=head.clo + 3)
-    ]
-
-    # 生成食物并且不让食物生成在蛇的身体里面
+def snake_game(play_sur_face, snake, num):
+    # 生成食物并且不让食物生成在细菌的身体里面
     def gen_food():
-        while 1:
-            position = Point(row=random.randint(0, ROW - 1), clo=random.randint(0, CLO - 1))
-            is_coll = False
-            if head.row == position.row and head.clo == position.clo:
-                is_coll = True
-            for body in snake:
-                if body.row == position.row and body.clo == position.clo:
-                    is_coll = True
-                    break
-            if not is_coll:
+        while True:
+            pos = [random.randint(0, 29)*20, random.randint(0, 29)*20]
+            if germ[0] == pos[0] and germ[1] == pos[1]:
+                continue
+            else:
                 break
-        return position
+        return pos
 
-    # 定义坐标
-    # 蛇头颜色可以自定义
-    head_color = (0, 158, 128)
+    germ = [200, 200]
+    # 颜色可以自定义
+    germ_color = (0, 158, 128)
+    food_color = (255, 255, 0)
     # 食物坐标
-    snakeFood = gen_food()
+    food = gen_food()
     # 食物颜色
-    snakeFood_color = (255, 255, 0)
-    snake_color = (200, 147, 158)
 
-    # 需要执行很多步画图操作 所以定义一个函数
-    def rect(point, color):
-        # 定位 画图需要left和top
-        left = point.clo * width / CLO
-        top = point.row * hight / ROW
-        # 将方块涂色
-        pygame.draw.rect(play_sur_face, color, (left, top, width / CLO, hight / ROW))
-
-    quit = True
     # 设置帧频率
     clock = pygame.time.Clock()
-    while quit:
+    direction = 'd'
+    time = 0
+    time_gap = 10
+    while True:
         # 处理帧频 锁帧
-        clock.tick(30)
-        # pygame.event.get()获取当前事件的队列 可以同时发生很多事件
+        clock.tick(60)
+        time += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quit = False
+                return snake, num
             elif event.type == pygame.KEYDOWN:
-                # 这里小细节蛇不可以直接左右上下 要判断当前是在什么状态下前行
-                if event.key == 273 or event.key == 119:
-                    if direct == 'left' or direct == 'right':
-                        direct = 'top'
-                if event.key == 274 or event.key == 115:
-                    if direct == 'left' or direct == 'right':
-                        direct = 'bottom'
-                if event.key == 276 or event.key == 97:
-                    if direct == 'top' or direct == 'bottom':
-                        direct = 'left'
-                if event.key == 275 or event.key == 100:
-                    if direct == 'top' or direct == 'bottom':
-                        direct = 'right'
-        # 吃东西
-        eat = (head.row == snakeFood.row and head.clo == snakeFood.clo)
+                if event.key == K_ESCAPE:
+                    if num != 1:
+                        num = int(0.5*num)
+                    return snake, num
+                if event.key == K_RIGHT or event.key == ord('d'):
+                    direction = 'd'
+                if event.key == K_LEFT or event.key == ord('a'):
+                    direction = 'a'
+                if event.key == K_UP or event.key == ord('w'):
+                    direction = "w"
+                if event.key == K_DOWN or event.key == ord('s'):
+                    direction = 's'
 
-        # 处理蛇的身子
-        # 1.把原来的头插入到snake的头上
-        # 2.把最后一个snake删掉
-        if eat:
-            snakeFood = Point(row=random.randint(0, ROW - 1), clo=random.randint(0, CLO - 1))
-        snake.insert(0, head.copy())
-        if not eat:
-            snake.pop()
+        # 处理细菌数量
+        if germ[0] == food[0] and germ[1] == food[1]:
+            food = gen_food()
+            if num <= 10:
+                num += 1
+            else:
+                num = int(num * 1.1)
 
         # 移动一下
-        if direct == 'left':
-            head.clo -= 1
-        if direct == 'right':
-            head.clo += 1
-        if direct == 'top':
-            head.row -= 1
-        if direct == 'bottom':
-            head.row += 1
-        dead = False
-        if head.clo < 0 or head.row < 0 or head.clo >= CLO or head.row >= ROW:
-            dead = True
+        if direction == "d" and time % time_gap == 0:
+            germ[0] += 20
+        if direction == "a" and time % time_gap == 0:
+            germ[0] -= 20
+        if direction == "w" and time % time_gap == 0:
+            germ[1] -= 20
+        if direction == "s" and time % time_gap == 0:
+            germ[1] += 20
+            
+        # 判定越界：折半返回
+        if germ[0] < 0 or germ[1] < 0 or germ[0] >= 600 or germ[1] >= 600:
+            if num != 1:
+                num = int(0.5*num)
+            return snake+1, num
+        '''
+        # 判定被保卫细胞发现：数量变为0.9
         for body in snake:
             if head.clo == body.clo and head.row == body.row:
-                dead = True
-                break
-        if dead:
-            print('Game Over')
-            quit = False
+                num = int(0.9*num)
+        if num == 0:
+            return snake, 0
+        '''
         # 背景画图
-        pygame.draw.rect(play_sur_face, (245, 135, 155), (0, 0, width, hight))
-
-        # 蛇头
-        rect(head, head_color)
-        # 绘制食物
-        rect(snakeFood, snakeFood_color)
-        # 绘制蛇的身子
-        for body in snake:
-            rect(body, snake_color)
-
+        pygame.draw.rect(play_sur_face, (245, 135, 155), (0, 0, 600, 600))
+        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
+        pygame.draw.rect(play_sur_face, food_color, (food[0], food[1], 20, 20))
         # 交还控制权
         pygame.display.flip()
+
+    return snake+1, num
 
 # 吃豆人
 def beens_game():
