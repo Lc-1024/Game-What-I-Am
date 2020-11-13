@@ -50,25 +50,54 @@ class game:
         self.sum = 1            # 细菌数量
         self.time = 0
         self.alive = True
+        self.rect_size = [(405, 200, 20, 20)]
 
         self.first = False      # 从体外入侵到头部/躯干的关卡，False表示尚未通关，通关后不再开启
         self.snake = 0          # 通过贪吃蛇进行增长，数字表示难度
         self.beens = 0          # 通过吃豆人进行增长，数字表示难度
 
     def show(self):
-        if self.place == 1:
-            self.place = 1
         if self.place == 2:
-            self.place = 2
+            play_sur_face.blit(pygame.image.load("image/body.jpg"), (0, 0))
+            # rect[2]-心肺，rect[3]-大脑
+            self.rect_size = [(300,230,20,20),(380,280,20,20), (342,370,25,25), (355,180,25,25)]
+            pygame.draw.rect(play_sur_face, green, self.rect_size[3])
         if self.place == 3:
-            self.place = 3
+            play_sur_face.blit(pygame.image.load("image/heart.jpg"), (0, 0))
+            # rect[2]-身体，rect[3]-肠胃
+            self.rect_size = [(210,365,20,20),(380,260,20,20), (303,145,22,22), (355,415,22,22)]
+            pygame.draw.rect(play_sur_face, green, self.rect_size[3])
+        if self.place == 4:
+            play_sur_face.blit(pygame.image.load("image/gut.jpg"), (0, 0))
+            # rect[2]-肠胃
+            self.rect_size = [(210,445,20,20),(370,520,20,20), (354,299,25,25)]
+        if self.place == 5:
+            play_sur_face.blit(pygame.image.load("image/brain.jpg"), (0, 0))
+            # rect[2]-身体
+            self.rect_size = [(245,200,20,20),(350,180,20,20), (318,325,23,23)]
+        pygame.draw.rect(play_sur_face, green, self.rect_size[0])
+        pygame.draw.rect(play_sur_face, green, self.rect_size[1])
+        pygame.draw.rect(play_sur_face, green, self.rect_size[2])
+
+    def click(self, mouse):
+        if self.place == 2:
+            if self.rect_size[3][0] + self.rect_size[3][2] > mouse[0] > self.rect_size[3][0] and self.rect_size[3][1] + self.rect_size[3][3] > mouse[1] > self.rect_size[3][1]:
+                self.snake = subgame.first_game(play_sur_face)
+        if self.place == 3:
+            if self.rect_size[3][0] + self.rect_size[3][2] > mouse[0] > self.rect_size[3][0] and self.rect_size[3][1] + self.rect_size[3][3] > mouse[1] > self.rect_size[3][1]:
+                self.snake = subgame.first_game(play_sur_face)
         if self.place == 4:
             self.place = 4
         if self.place == 5:
             self.place = 5
-        if self.place == 6:
-            self.place = 6
-
+        
+        if self.rect_size[0][0] + self.rect_size[0][2] > mouse[0] > self.rect_size[0][0] and self.rect_size[0][1] + self.rect_size[0][3] > mouse[1] > self.rect_size[0][1]:
+            self.snake, self.sum = subgame.snake_game(play_sur_face, self.snake, self.sum)
+        if self.rect_size[1][0] + self.rect_size[1][2] > mouse[0] > self.rect_size[1][0] and self.rect_size[1][1] + self.rect_size[1][3] > mouse[1] > self.rect_size[1][1]:
+            self.beens, self.sum = subgame.beens_game(play_sur_face, self.beens, self.sum)
+        if self.rect_size[2][0] + self.rect_size[2][2] > mouse[0] > self.rect_size[2][0] and self.rect_size[2][1] + self.rect_size[2][3] > mouse[1] > self.rect_size[2][1]:
+            self.snake = subgame.first_game(play_sur_face)
+      
 
 # 初始化pygame
 pygame.init()
@@ -81,8 +110,9 @@ bright_red = (255,0,0)
 bright_green = (0,255,0)
 blue = (0,0,255)
 
-first_place_size = (405, 200, 20, 20)
 size = (600, 600)
+
+clock = pygame.time.Clock()
 
 germ = game()
 # 这是游戏框
@@ -94,6 +124,7 @@ pygame.display.set_icon(pygame.image.load("photo.png"))
 # TODO 开始动画
 # 更新显示
 pygame.display.flip()
+
 '''
 # 插入开始图片
 play_sur_face.blit(pygame.image.load("image/body.jpg"), (0, 0))
@@ -104,11 +135,12 @@ font = pygame.font.SysFont("", 20) # 20 -- 字体大小
 text_surface = font.render("Any key to continue", True, (0, 0, 0)) # True -- 锯齿边
 play_sur_face.blit(text_surface, (200, 550))
 '''
-
-# 等待玩家操作
+'''
+# 第一关
 while germ.first == False:
+    clock.tick(60)
     # 插入开始图片
-    play_sur_face.blit(pygame.image.load("image/body.jpg"), (0, 0))
+    play_sur_face.blit(pygame.image.load("image/out.jpg"), (0, 0))
     # 检测退出
     for event in pygame.event.get():
         print(event)
@@ -117,7 +149,7 @@ while germ.first == False:
             quit()
         elif event.type == MOUSEBUTTONDOWN:
             mouse = pygame.mouse.get_pos()
-            if first_place_size[0] + first_place_size[2] > mouse[0] > first_place_size[0] and first_place_size[1] + first_place_size[3] > mouse[1] > first_place_size[1]:
+            if germ.rect_size[0][0] + germ.rect_size[0][2] > mouse[0] > germ.rect_size[0][0] and germ.rect_size[0][1] + germ.rect_size[0][3] > mouse[1] > germ.rect_size[0][1]:
                 germ.first = subgame.first_game(play_sur_face)
         # 回车进入身体，esc退出
         elif event.type == KEYDOWN:
@@ -125,31 +157,48 @@ while germ.first == False:
             if event.key == K_ESCAPE:  
                 pygame.quit()
                 sys.exit()
+            elif event.key == ord('l'):
+                germ.first = True
             else:
                 germ.first = subgame.first_game(play_sur_face)
-
-    # TODO show
     mouse = pygame.mouse.get_pos()
-    if first_place_size[0] + first_place_size[2] > mouse[0] > first_place_size[0] and first_place_size[1] + first_place_size[3] > mouse[1] > first_place_size[1]:
-        pygame.draw.rect(play_sur_face, bright_green, first_place_size)
+    if germ.rect_size[0][0] + germ.rect_size[0][2] > mouse[0] > germ.rect_size[0][0] and germ.rect_size[0][1] + germ.rect_size[0][3] > mouse[1] > germ.rect_size[0][1]:
+        pygame.draw.rect(play_sur_face, bright_green, germ.rect_size[0])
     else:
-        pygame.draw.rect(play_sur_face, green, first_place_size)
+        pygame.draw.rect(play_sur_face, green, germ.rect_size[0])
     pygame.display.update()
+'''
+germ.place = 5
 
-
-if germ.place == 2:
-    # TODO 如果在头部，首先是显示进入的画面和迷惑的过程，然后再进入下面的循环。
-    a = 1
-
-if germ.place == 3:
-    # TODO 如果在身体
-    a = 1
-
-#while germ.alive:
+while germ.alive:
     # TODO 接下来是正常的游戏，新的剧情只会在游戏中触发。
-   # germ.show()
-
-
+    clock.tick(60)
+    germ.show()# 检测退出
+    for event in pygame.event.get():
+        print(event)
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        elif event.type == MOUSEBUTTONDOWN:
+            mouse = pygame.mouse.get_pos()
+            # 如果click则判断是否敲击
+            if germ.click(mouse):
+                germ.first = subgame.first_game(play_sur_face)
+        # 回车进入身体，esc退出
+        elif event.type == KEYDOWN:
+            # 按esc键退出游戏
+            if event.key == K_ESCAPE:  
+                pygame.quit()
+                sys.exit()
+            elif event.key == ord('l'):
+                germ.first = True
+            else:
+                germ.first = subgame.first_game(play_sur_face)
+    mouse = pygame.mouse.get_pos()
+    for i in range(len(germ.rect_size)):
+        if germ.rect_size[i][0] + germ.rect_size[i][2] > mouse[0] > germ.rect_size[i][0] and germ.rect_size[i][1] + germ.rect_size[i][3] > mouse[1] > germ.rect_size[i][1]:
+            pygame.draw.rect(play_sur_face, bright_green, germ.rect_size[i])
+    pygame.display.flip()
 
 
 # TODO 结局
