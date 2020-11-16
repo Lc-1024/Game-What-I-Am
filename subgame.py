@@ -38,7 +38,7 @@ def first_game(play_sur_face):
     pygame.time.set_timer(CREATE_ENEMY_EVENT, 3500)
     pygame.display.update()
 
-    bg = pygame.transform.scale(pygame.image.load("image/first.jpg"), (5500, 600))
+    bg = pygame.transforc.scale(pygame.image.load("image/first.jpg"), (5500, 600))
     bd = pygame.image.load("d.png")
     bar_up = pygame.image.load("photo.png")
     bar_down = pygame.image.load("photo.png")
@@ -203,7 +203,7 @@ def snake_game(play_sur_face, level, num):
             return level, num
         
         for i in range(len(cell)):
-            if time % (20 - level) == i % (10 - level):
+            if time % time_gap == i % (10 - level):
                 tmp = random.randint(0, 4)
                 if 0 <= cell[i][0] + dx[tmp][0] <= 580 and 0 <= cell[i][1] + dx[tmp][1] <= 580:
                      cell[i][0] += dx[tmp][0]
@@ -227,18 +227,21 @@ def snake_game(play_sur_face, level, num):
     return level+1, num
 
 # TODO 吃豆人
-def beens_game():
-    # 第一关的初始化
-    # 主角
-    x, y = 0, 30
-    life = 3
-    d = 'd'
-    state = {'d': pygame.image.load("d.png"), 'a': pygame.image.load("a.png"), 'w': pygame.image.load("w.png"), 's': pygame.image.load("s.png")}
-
+def beens_game(play_sur_face, level, num):
+    def gen():
+        while True:
+            pos = [random.randint(0, 19)*30, random.randint(0, 19)*30]
+            if germ[0] == pos[0] and germ[1] == pos[1]:
+                continue
+            elif pos in Wall or pos in food:
+                continue
+            else:
+                break
+        return pos
     # 墙
     Wall = [
         [0, 0], [30, 0], [60, 0], [90, 0], [120, 0], [150, 0], [180, 0], [210, 0], [240, 0], [270, 0], [300, 0], [330, 0], [360, 0], [390, 0], [420, 0], [450, 0], [480, 0], [510, 0], [540, 0], [570, 0], 
-        [-30, 30], [60, 30], [180, 30], [300, 30], [420, 30], [510, 30], [570, 30],
+        [0, 30], [60, 30], [180, 30], [300, 30], [420, 30], [510, 30], [570, 30],
         [0, 60], [60, 60], [120, 60], [180, 60], [240, 60], [270, 60], [300, 60], [360, 60], [420, 60], [450, 60], [510, 60], [570, 60], 
         [0, 90], [120, 90], [360, 90], [570, 90], 
         [0, 120], [60, 120], [90, 120], [120, 120], [150, 120], [180, 120], [240, 120], [300, 120], [330, 120], [360, 120], [390, 120], [420, 120], [450, 120], [480, 120], [510, 120], [540, 120], [570, 120], 
@@ -259,198 +262,93 @@ def beens_game():
         [0, 570], [30, 570], [60, 570], [90, 570], [120, 570], [150, 570], [180, 570], [210, 570], [240, 570], [270, 570], [300, 570], [330, 570], [360, 570], [390, 570], [420, 570], [450, 570], [480, 570], [510, 570], [540, 570], [570, 570],
         [570, 540]
     ]
-
-    # 小怪
-    Master = [master(480, 90, 'w'), master(270, 270, 'w'), master(210, 540, 'w'), master(90, 420, 'w')]
-    m_state = {'d': pygame.image.load("m_d.png"), 'a': pygame.image.load("m_a.png"), 'w': pygame.image.load("m_w.png"), 's': pygame.image.load("m_s.png")}
-
-    # 子弹
-    Bullet = []
-    b_state = pygame.image.load("b.png")
-
-    # 钥匙
-    Key = [things(30, 480)]
-    k_state = pygame.image.load("key.png")
-
-    # 宝藏
-    Treasure = [things(540, 30), things(30, 210), things(270, 330)]
-    t_state = pygame.image.load("treasure.png")
-    take_treasure = 0
-
-    # 行进方向
-    walk = {'d': [30, 0], 'a': [-30, 0], 's': [0, 30], 'w': [0, -30]}
+    germ = [210, 210]
+    time = 0
+    di = ''
+    dx = [[30,0], [-30,0], [0,-30], [0,30], [0,0]]
+    # 颜色可以自定义
+    germ_color = (0, 158, 128)
+    food_color = (255, 255, 0)
+    cell_color = (0, 0, 0)
+    # 保卫细胞
+    cell = []
+    food = []
+    for i in range(3*level+3):
+        cell.append(gen())
+    for i in range(400-220):
+        food.append(gen())
 
     # 设置时钟
     clock = pygame.time.Clock()
-
-    # 第一关开始
     while True:
-        clock.tick(60)                      # 每秒执行60次
-        change_direction = ""               # 将参数初始化
+        clock.tick(60)
+        time += 1
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == KEYDOWN:
-                # 判断键盘事件
+            elif event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE:
+                    if num != 1:
+                        num = int((0.8+0.02*level)*num)
+                    return level, num
                 if event.key == K_RIGHT or event.key == ord('d'):
-                    change_direction = 'd'
+                    di = 0
                 if event.key == K_LEFT or event.key == ord('a'):
-                    change_direction = 'a'
+                    di = 1
                 if event.key == K_UP or event.key == ord('w'):
-                    change_direction = "w"
+                    di = 2
                 if event.key == K_DOWN or event.key == ord('s'):
-                    change_direction = 's'
-                # 按下空格键发射子弹
-                if event.key == ord(' '):
-                    Bullet.append(bullet(x+walk[d][0], y+walk[d][1], d))
-                if event.key == K_ESCAPE:  # 按esc键
-                    pygame.quit()
-                    sys.exit()
+                    di = 3
+                if event.key == ord('l'):
+                    num *= 2
 
         # 如果前进方向没有墙主角可以运动
-        if change_direction == "d":
-            d = change_direction
-            if [x+30, y] not in Wall:
-                x += 30
-        if change_direction == "a":
-            d = change_direction
-            if [x-30, y] not in Wall:
-                x -= 30
-        if change_direction == "w":
-            d = change_direction
-            if [x, y-30] not in Wall:
-                y -= 30
-        if change_direction == "s":
-            d = change_direction
-            if [x, y+30] not in Wall:
-                y += 30
-
-        # 通关
-        if x == 600 and y == 540:
-            break
+        if di != '' and time % 10 == 0:
+            tmp = [germ[0]+dx[di][0], germ[1]+dx[di][1]]
+            if tmp not in Wall:
+                germ = tmp
+            if germ in cell and num > 1:
+                num = int(0.85 * num)
+            di = ''
+            if germ in food:
+                food.remove(germ)
+                num += 100 ** level
+            if len(food) < 30:
+                return level+1, num
 
         # 开始绘制，背景为全黑，将墙画入地图
         play_sur_face.fill(pygame.Color(255, 255, 255))
         # 开始画墙
         for w in Wall:
             pygame.draw.rect(play_sur_face, pygame.Color(255, 0, 0), Rect(w[0], w[1], 30, 30)) 
-        # 出口大门
-        if len(Key) > 0:
-            pygame.draw.rect(play_sur_face, pygame.Color(255, 255, 0), Rect(570, 540, 30, 30)) 
 
-        # 判断是否吃到钥匙
-        for k in Key:
-            if k.x == x and k.y == y:
-                Key.remove(k)
-                if len(Key) == 0:
-                    Wall.remove([570, 540])
-            else:
-                play_sur_face.blit(k_state, (k.x-17, k.y-15))
+        # 判断每个保卫细胞的状态
+        for c in cell:
+            if time % (20-level) != 0:
+                break
+            d = random.randint(0,3)
+            tmp = [c[0]+dx[d][0], c[1]+dx[d][1]]
+            if tmp not in Wall:
+                cell.remove(c)
+                cell.append(tmp)
 
-        # 判断是否吃到宝藏
-        for t in Treasure:
-            if t.x == x and t.y == y:
-                Treasure.remove(t)
-                take_treasure += 1
-            else:
-                play_sur_face.blit(t_state, (t.x-17, t.y-15))
-
-        # 显示宝藏和钥匙数量
-        text_surface = pygame.font.SysFont("", 20).render("Key: {lk}".format(lk = 1-len(Key)), True, (0, 0, 0))
-        play_sur_face.blit(text_surface, (10, 570))
-        text_surface = pygame.font.SysFont("", 20).render("Treasure: {lt}".format(lt = take_treasure), True, (0, 0, 0))
-        play_sur_face.blit(text_surface, (10, 585))
-
-        # 判断每个子弹的状态
-        for b in Bullet:
-            b.fly()
-            # 运动之前判断是否射到小怪
-            for m in Master:
-                if b.x == m.x and b.y == m.y:
-                    m.life -= 1
-                    b.alive = False
-                    continue
-            
-            b.time += 1
-            if b.time % 10 != 0:
-                continue
-            
-            if [b.x+walk[b.d][0], b.y+walk[b.d][1]] not in Wall:
-                b.x += walk[b.d][0]
-                b.y += walk[b.d][1]
-            else:
-                b.alive = False
-                continue
-
-            # 运动之后判断是否射到小怪
-            for m in Master:
-                if b.x == m.x and b.y == m.y:
-                    m.life -= 1
-                    b.alive = False
-                    continue
-            # 如果子弹还未消失，则运动
-            if b.alive:
-                play_sur_face.blit(b_state, (b.x-17, b.y-15))
-            else:
-                Bullet.remove(b)
-
-        # 判断每个小怪的状态
-        for m in Master:
-            # 如果小怪还活着
-            if m.life > 0:
-                m.time += 1
-            if m.time % 30 != 0:
-                continue
-
-            # 如果小怪此前已经静止，则赋予新的方向
-            if m.walking == False:
-                m.d = random.choice('wsad')
-            # 小怪面对的方向没有墙则可以运动
-            if [m.x+walk[m.d][0], m.y+walk[m.d][1]] not in Wall:
-                m.walking = True
-                # 但是如果小怪前进后可以打到主角则攻击，并不运动
-                if m.x+walk[m.d][0] == x and m.y+walk[m.d][1] == y:
-                    m.attack = True
-                    m.walking = False
-            else:
-                m.walking = False
-            
-            # 如果小怪现在可以攻击，则攻击
-            if m.x == x and m.y == y:
-                m.attack = True
-                m.walking = False
-
-            # 小怪可以的情况下则运动
-            if m.walking:
-                m.x += walk[m.d][0]
-                m.y += walk[m.d][1]
-
-            play_sur_face.blit(m_state[m.d], (m.x-15, m.y-15))
-            if m.attack:
-                life -= 1
-                if life == 0:
-                    show_lose()
-                m.attack = False
-            else:
-                Master.remove(m)
-
-        # 最后显示主角的位置
-        play_sur_face.blit(state[d], (x-10, y-25))
+        for f in food:
+            pygame.draw.rect(play_sur_face, food_color, (f[0]+10, f[1]+10, 10, 10))
+        for c in cell:
+            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 30, 30))
+        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 30, 30))
         # 显示生命值
-        text_surface = pygame.font.SysFont("", 20).render("Life: {l}".format(l = life), True, (0, 0, 0))
+        text_surface = pygame.font.SysFont("", 20).render("Num: {l}".format(l = num), True, (0, 0, 0))
         play_sur_face.blit(text_surface, (10, 10))
         pygame.display.flip()
 
     return
 
 
-
-
-
+# TODO
 # 细菌传播，从a到b
 def move(play_sur_face, a, b):
-    # 第一关的初始化
     # 主角
     x, y = 0, 30
     life = 3
@@ -508,7 +406,7 @@ def move(play_sur_face, a, b):
     # 第一关开始
     while True:
         clock.tick(60)                      # 每秒执行60次
-        change_direction = ""               # 将参数初始化
+        direction = ""               # 将参数初始化
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -516,13 +414,13 @@ def move(play_sur_face, a, b):
             elif event.type == KEYDOWN:
                 # 判断键盘事件
                 if event.key == K_RIGHT or event.key == ord('d'):
-                    change_direction = 'd'
+                    direction = 'd'
                 if event.key == K_LEFT or event.key == ord('a'):
-                    change_direction = 'a'
+                    direction = 'a'
                 if event.key == K_UP or event.key == ord('w'):
-                    change_direction = "w"
+                    direction = "w"
                 if event.key == K_DOWN or event.key == ord('s'):
-                    change_direction = 's'
+                    direction = 's'
                 # 按下空格键发射子弹
                 if event.key == ord(' '):
                     Bullet.append(bullet(x+walk[d][0], y+walk[d][1], d))
@@ -531,20 +429,20 @@ def move(play_sur_face, a, b):
                     sys.exit()
 
         # 如果前进方向没有墙主角可以运动
-        if change_direction == "d":
-            d = change_direction
+        if direction == "d":
+            d = direction
             if [x+30, y] not in Wall:
                 x += 30
-        if change_direction == "a":
-            d = change_direction
+        if direction == "a":
+            d = direction
             if [x-30, y] not in Wall:
                 x -= 30
-        if change_direction == "w":
-            d = change_direction
+        if direction == "w":
+            d = direction
             if [x, y-30] not in Wall:
                 y -= 30
-        if change_direction == "s":
-            d = change_direction
+        if direction == "s":
+            d = direction
             if [x, y+30] not in Wall:
                 y += 30
 
@@ -589,8 +487,8 @@ def move(play_sur_face, a, b):
             b.fly()
             # 运动之前判断是否射到小怪
             for m in Master:
-                if b.x == m.x and b.y == m.y:
-                    m.life -= 1
+                if b.x == c.x and b.y == c.y:
+                    c.life -= 1
                     b.alive = False
                     continue
             
@@ -607,8 +505,8 @@ def move(play_sur_face, a, b):
 
             # 运动之后判断是否射到小怪
             for m in Master:
-                if b.x == m.x and b.y == m.y:
-                    m.life -= 1
+                if b.x == c.x and b.y == c.y:
+                    c.life -= 1
                     b.alive = False
                     continue
             # 如果子弹还未消失，则运动
@@ -620,40 +518,40 @@ def move(play_sur_face, a, b):
         # 判断每个小怪的状态
         for m in Master:
             # 如果小怪还活着
-            if m.life > 0:
-                m.time += 1
-            if m.time % 30 != 0:
+            if c.life > 0:
+                c.time += 1
+            if c.time % 30 != 0:
                 continue
 
             # 如果小怪此前已经静止，则赋予新的方向
-            if m.walking == False:
-                m.d = random.choice('wsad')
+            if c.walking == False:
+                c.d = randoc.choice('wsad')
             # 小怪面对的方向没有墙则可以运动
-            if [m.x+walk[m.d][0], m.y+walk[m.d][1]] not in Wall:
-                m.walking = True
+            if [c.x+walk[c.d][0], c.y+walk[c.d][1]] not in Wall:
+                c.walking = True
                 # 但是如果小怪前进后可以打到主角则攻击，并不运动
-                if m.x+walk[m.d][0] == x and m.y+walk[m.d][1] == y:
-                    m.attack = True
-                    m.walking = False
+                if c.x+walk[c.d][0] == x and c.y+walk[c.d][1] == y:
+                    c.attack = True
+                    c.walking = False
             else:
-                m.walking = False
+                c.walking = False
             
             # 如果小怪现在可以攻击，则攻击
-            if m.x == x and m.y == y:
-                m.attack = True
-                m.walking = False
+            if c.x == x and c.y == y:
+                c.attack = True
+                c.walking = False
 
             # 小怪可以的情况下则运动
-            if m.walking:
-                m.x += walk[m.d][0]
-                m.y += walk[m.d][1]
+            if c.walking:
+                c.x += walk[c.d][0]
+                c.y += walk[c.d][1]
 
-            play_sur_face.blit(m_state[m.d], (m.x-15, m.y-15))
-            if m.attack:
+            play_sur_face.blit(m_state[c.d], (c.x-15, c.y-15))
+            if c.attack:
                 life -= 1
                 if life == 0:
                     show_lose()
-                m.attack = False
+                c.attack = False
             else:
                 Master.remove(m)
 
