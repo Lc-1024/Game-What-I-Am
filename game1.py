@@ -22,27 +22,20 @@ def show_lose():
 
 # 等待玩家继续或退出
 def wait_to_continue():
-    Ended = False
-    while Ended == False:
-        # 界面是否结束
+    while True:
+        clock.tick(60)
         for event in pygame.event.get():
-            # 退出游戏
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == KEYDOWN:
-                # 按esc键退出游戏
                 if event.key == K_ESCAPE:  
                     pygame.quit()
                     sys.exit()
-                # 按下其他键继续游戏
                 else:
-                    Ended = True
-                    break
-        
-        # 结束显示
-        if Ended:
-            break
+                    return
+            elif event.type == MOUSEBUTTONDOWN:
+                return
 
 class game:
     def __init__(self):
@@ -53,8 +46,7 @@ class game:
         self.rect_size = [(405, 200, 20, 20)]
 
         self.first = False      # 从体外入侵到头部/躯干的关卡，False表示尚未通关，通关后不再开启
-        self.snake = 0          # 通过贪吃蛇进行增长，数字表示难度
-        self.beens = 0          # 通过吃豆人进行增长，数字表示难度
+        self.level = 0          # 通过贪吃蛇、吃豆人进行增长，数字表示难度
 
     def show(self):
         if self.place == 2:
@@ -81,23 +73,28 @@ class game:
 
     def click(self, mouse):
         if self.place == 2:
+            if self.rect_size[2][0] + self.rect_size[2][2] > mouse[0] > self.rect_size[2][0] and self.rect_size[2][1] + self.rect_size[2][3] > mouse[1] > self.rect_size[2][1]:
+                self.place, self.num = subgame.move(play_sur_face, 2, 3, self.num)
             if self.rect_size[3][0] + self.rect_size[3][2] > mouse[0] > self.rect_size[3][0] and self.rect_size[3][1] + self.rect_size[3][3] > mouse[1] > self.rect_size[3][1]:
-                self.snake = subgame.first_game(play_sur_face)
-        if self.place == 3:
+                self.place, self.num = subgame.move(play_sur_face, 2, 5, self.num)
+        elif self.place == 3:
+            if self.rect_size[2][0] + self.rect_size[2][2] > mouse[0] > self.rect_size[2][0] and self.rect_size[2][1] + self.rect_size[2][3] > mouse[1] > self.rect_size[2][1]:
+                self.place, self.num = subgame.move(play_sur_face, 3, 2, self.num)
             if self.rect_size[3][0] + self.rect_size[3][2] > mouse[0] > self.rect_size[3][0] and self.rect_size[3][1] + self.rect_size[3][3] > mouse[1] > self.rect_size[3][1]:
-                self.snake = subgame.first_game(play_sur_face)
-        if self.place == 4:
-            self.place = 4
-        if self.place == 5:
-            self.place = 5
+                self.place, self.num = subgame.move(play_sur_face, 3, 4, self.num)
+        elif self.place == 4:
+            if self.rect_size[2][0] + self.rect_size[2][2] > mouse[0] > self.rect_size[2][0] and self.rect_size[2][1] + self.rect_size[2][3] > mouse[1] > self.rect_size[2][1]:
+                self.place, self.num = subgame.move(play_sur_face, 4, 3, self.num)
+        elif self.place == 5:
+            if self.rect_size[2][0] + self.rect_size[2][2] > mouse[0] > self.rect_size[2][0] and self.rect_size[2][1] + self.rect_size[2][3] > mouse[1] > self.rect_size[2][1]:
+                self.place, self.num = subgame.move(play_sur_face, 5, 2, self.num)
         
         if self.rect_size[0][0] + self.rect_size[0][2] > mouse[0] > self.rect_size[0][0] and self.rect_size[0][1] + self.rect_size[0][3] > mouse[1] > self.rect_size[0][1]:
-            self.snake, self.num = subgame.snake_game(play_sur_face, self.snake, self.num)
+            self.level, self.num = subgame.snake_game(play_sur_face, self.level, self.num)
         if self.rect_size[1][0] + self.rect_size[1][2] > mouse[0] > self.rect_size[1][0] and self.rect_size[1][1] + self.rect_size[1][3] > mouse[1] > self.rect_size[1][1]:
-            self.beens, self.num = subgame.beens_game(play_sur_face, self.beens, self.num)
-        if self.rect_size[2][0] + self.rect_size[2][2] > mouse[0] > self.rect_size[2][0] and self.rect_size[2][1] + self.rect_size[2][3] > mouse[1] > self.rect_size[2][1]:
-            self.snake = subgame.first_game(play_sur_face)
-      
+            self.level, self.num = subgame.beens_game(play_sur_face, self.level, self.num)
+
+
 
 # 初始化pygame
 pygame.init()
@@ -109,35 +106,57 @@ green = (0,200,0)
 bright_red = (255,0,0)
 bright_green = (0,255,0)
 blue = (0,0,255)
-
+text_color = [(96,96,96), (192,192,192), (255,255,255)]
 size = (600, 600)
-
 clock = pygame.time.Clock()
 
 germ = game()
 # 这是游戏框
 play_sur_face = pygame.display.set_mode(size)
 # 设置标题
-pygame.display.set_caption("细菌与人")
+pygame.display.set_caption("What I Am?")
 # 加载图标
 pygame.display.set_icon(pygame.image.load("photo.png"))
-# TODO 开始动画
-# 更新显示
-pygame.display.flip()
-
-'''
-# 插入开始图片
-play_sur_face.blit(pygame.image.load("image/body.jpg"), (0, 0))
-# 背景设置为白色
-pygame.draw.rect(play_sur_face, pygame.Color(255, 255, 255), Rect(0, 0, 600, 600))
 # 获得当前系统所有可用字体
-font = pygame.font.SysFont("", 20) # 20 -- 字体大小
-text_surface = font.render("Any key to continue", True, (0, 0, 0)) # True -- 锯齿边
-play_sur_face.blit(text_surface, (200, 550))
-'''
-'''
+font = pygame.font.SysFont("simhei", 20) # 20 -- 字体大小
+tip_font = pygame.font.SysFont("simhei", 10)
+
+
+# 开始动画
+if True:
+    play_sur_face.blit(pygame.image.load("image/out.jpg"), (0, 0))
+    play_sur_face.blit(font.render("开始游戏", True, (0,0,0)), (250, 200))
+    pygame.display.flip()
+    wait_to_continue()
+    pygame.draw.rect(play_sur_face, pygame.Color(0, 0, 0), Rect(0, 0, 600, 600))
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(font.render("我是谁？", True, text_color[i]), (20, 30))
+        pygame.display.flip()
+    clock.tick(1)
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(font.render("我在哪？", True, text_color[i]), (20, 70))
+        pygame.display.flip()
+    clock.tick(1)
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(font.render("我要做什么？", True, text_color[i]), (20, 110))
+        pygame.display.flip()
+    clock.tick(1)
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(font.render("那个大家伙...是什么？", True, text_color[i]), (20, 150))
+        pygame.display.flip()
+    clock.tick(1)
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(tip_font.render("按任意键继续", True, text_color[i]), (250, 550))
+        pygame.display.flip()
+    wait_to_continue()
+
 # 第一关
-while germ.first == False:
+while germ.place == 1:
     clock.tick(60)
     # 插入开始图片
     play_sur_face.blit(pygame.image.load("image/out.jpg"), (0, 0))
@@ -148,9 +167,8 @@ while germ.first == False:
             sys.exit()
         elif event.type == MOUSEBUTTONDOWN:
             mouse = pygame.mouse.get_pos()
-            print(event)
             if germ.rect_size[0][0] + germ.rect_size[0][2] > mouse[0] > germ.rect_size[0][0] and germ.rect_size[0][1] + germ.rect_size[0][3] > mouse[1] > germ.rect_size[0][1]:
-                germ.first = subgame.first_game(play_sur_face)
+                germ.place = subgame.first_game(play_sur_face)
         # 回车进入身体，esc退出
         elif event.type == KEYDOWN:
             # 按esc键退出游戏
@@ -158,17 +176,39 @@ while germ.first == False:
                 pygame.quit()
                 sys.exit()
             elif event.key == ord('l'):
-                germ.first = True
+                germ.place = 2
             else:
-                germ.first = subgame.first_game(play_sur_face)
+                germ.place = subgame.first_game(play_sur_face)
     mouse = pygame.mouse.get_pos()
     if germ.rect_size[0][0] + germ.rect_size[0][2] > mouse[0] > germ.rect_size[0][0] and germ.rect_size[0][1] + germ.rect_size[0][3] > mouse[1] > germ.rect_size[0][1]:
         pygame.draw.rect(play_sur_face, bright_green, germ.rect_size[0])
     else:
         pygame.draw.rect(play_sur_face, green, germ.rect_size[0])
     pygame.display.update()
-'''
-germ.place = 5
+
+germ.place = 2
+if True:
+    pygame.draw.rect(play_sur_face, pygame.Color(0, 0, 0), Rect(0, 0, 600, 600))
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(font.render("我好像，进来了？", True, text_color[i]), (20, 30))
+        pygame.display.flip()
+    clock.tick(1)
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(font.render("这里好温暖，好舒服", True, text_color[i]), (20, 70))
+        pygame.display.flip()
+    clock.tick(1)
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(font.render("好像还有好多好吃的", True, text_color[i]), (20, 110))
+        pygame.display.flip()
+    clock.tick(1)
+    for i in range(3):
+        clock.tick(5)
+        play_sur_face.blit(tip_font.render("按任意键继续", True, text_color[i]), (250, 550))
+        pygame.display.flip()
+    wait_to_continue()
 
 while germ.alive:
     # TODO 接下来是正常的游戏，新的剧情只会在游戏中触发。
@@ -180,10 +220,9 @@ while germ.alive:
             sys.exit()
         elif event.type == MOUSEBUTTONDOWN:
             mouse = pygame.mouse.get_pos()
-            print(event)
             # 如果click则判断是否敲击
             if germ.click(mouse):
-                germ.first = subgame.first_game(play_sur_face)
+                germ.place = subgame.first_game(play_sur_face)
         # 回车进入身体，esc退出
         elif event.type == KEYDOWN:
             # 按esc键退出游戏
@@ -195,7 +234,6 @@ while germ.alive:
         if germ.rect_size[i][0] + germ.rect_size[i][2] > mouse[0] > germ.rect_size[i][0] and germ.rect_size[i][1] + germ.rect_size[i][3] > mouse[1] > germ.rect_size[i][1]:
             pygame.draw.rect(play_sur_face, bright_green, germ.rect_size[i])
     pygame.display.flip()
-
 
 # TODO 结局
 
