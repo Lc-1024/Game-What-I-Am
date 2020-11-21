@@ -55,14 +55,32 @@ def first_game(play_sur_face):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit()
-
+                sys.exit()
             elif event.type == CREATE_ENEMY_EVENT:
                 U = random.randint(0, 255) - bar_size[1]
                 D = U + bar_size[1] + random.randint(200, int(350-time/50))
                 bar.append([600, U, D])
+            elif event.type == MOUSEBUTTONDOWN:
+                clock.tick(26)
+                O = random.randint(0, 3)
+                if O != 0:
+                    O = 1
+                    T = 50
+                else:
+                    T = 100
 
+                J += 1
+                if J <= 39:
+                    V = -95
+                elif (J >= 28) and (J <= 50):
+                    V = I
+                    I += 0.2
+                else:
+                    V = I
+                    I += 0.4
             elif event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE:  
+                    return 1
                 if event.key == pygame.K_UP or event.key == pygame.K_SPACE:
                     clock.tick(26)
                     O = random.randint(0, 3)
@@ -81,12 +99,14 @@ def first_game(play_sur_face):
                     else:
                         V = I
                         I += 0.4
+                elif event.key == ord('l'):
+                    return 2
 
         bird[1] += round(V * t + 0.5 * A * t * t)
         V += A * t
 
         if (bird[1] >= 650) or (bird[1] <= -50):
-            return False
+            return 1
         j += 1
         if j == 3:
             i += 1
@@ -104,7 +124,7 @@ def first_game(play_sur_face):
 
         for b in bar:
             if bird[0]+size[0] >= b[0] and bird[0] <= b[0]+bar_size[0] and not (bird[1]+size[1] <= b[2] and bird[1] >= b[1]+bar_size[1]):
-                return False
+                return 1
 
         play_sur_face.blit(bg, (-time, 0))
         for i in range(len(bar)):
@@ -122,9 +142,9 @@ def first_game(play_sur_face):
         pygame.display.update()
 
         if time >= 4900:
-            return
+            return 2
 
-# 贪吃蛇
+# 细菌以贪吃蛇的形态在人体内吃东西增殖
 def snake_game(play_sur_face, level, num):
     # 生成食物并且不让食物生成在细菌的身体里面
     def gen():
@@ -137,7 +157,7 @@ def snake_game(play_sur_face, level, num):
         return pos
 
     germ = [200, 200]
-    food = gen()
+    food = [gen()]
     cell = []
     dx = [[20,0], [-20,0], [0,-20], [0,20], [0,0]]
 
@@ -145,11 +165,10 @@ def snake_game(play_sur_face, level, num):
     germ_color = (0, 158, 128)
     food_color = (255, 255, 0)
     cell_color = (0, 0, 0)
+    back_color = (255, 235, 215)
 
-    font = pygame.font.SysFont("", 20) # 20 -- 字体大小
-    def show_num(a):
-        return font.render("Num of germ: "+str(num), True, (0, 0, 0)) # True -- 锯齿边
-    play_sur_face.blit(show_num(num), (20, 550))
+    font = pygame.font.SysFont("simhei", 12)
+    play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
 
     clock = pygame.time.Clock()
     di = 0
@@ -175,8 +194,11 @@ def snake_game(play_sur_face, level, num):
                     di = 2
                 if event.key == K_DOWN or event.key == ord('s'):
                     di = 3
-                if event.key == ord('l'):
+                if event.key == ord('c'):
                     num *= 2
+                if event.key == ord('l'):
+                    num *= 100
+                    return level+1, num
         
         # 移动一下
         if time % time_gap == 0:
@@ -184,8 +206,9 @@ def snake_game(play_sur_face, level, num):
             germ[1] += dx[di][1]
             
         # 处理细菌数量
-        if germ[0] == food[0] and germ[1] == food[1]:
-            food = gen()
+        if germ in food:
+            food.remove(germ)
+            food.append(gen())
             if num <= 10:
                 num += 2
             elif num <= 20 * (100 ** level):
@@ -195,8 +218,10 @@ def snake_game(play_sur_face, level, num):
 
         if num >= 100 ** (level+1):
             return level+1, num
-        while num / (100 ** level) * (level+1) / 10 >= len(cell):
+        while num / (100 ** level) * (level+1) >= 20 * len(cell):
             cell.append(gen())
+        while num / (100 ** level) >= 20 * len(food):
+            food.append(gen())
 
         # 判定越界：数量折半
         if germ[0] < 0 or germ[1] < 0 or germ[0] >= 600 or germ[1] >= 600:
@@ -211,19 +236,19 @@ def snake_game(play_sur_face, level, num):
                      cell[i][0] += dx[tmp][0]
                      cell[i][1] += dx[tmp][1]
 
-        # 判定被保卫细胞发现：数量变为0.8
+        # 判定被保卫细胞发现：数量：变为0.8
         if germ in cell and time % time_gap == 0:
             num = int((0.8+0.02*level)*num) + 1
         if num == 0:
             return level, 0
 
-        pygame.draw.rect(play_sur_face, (245, 135, 155), (0, 0, 600, 600))
+        pygame.draw.rect(play_sur_face, back_color, (0, 0, 600, 600))
         for c in cell:
-            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
-        pygame.draw.rect(play_sur_face, food_color, (food[0], food[1], 20, 20))
+            pygame.draw.rect(play_sur_face, cell_color, (c[0]+1, c[1]+1, 18, 18))
+        for f in food:
+            pygame.draw.rect(play_sur_face, food_color, (f[0]+1, f[1]+1, 18, 18))
         pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
-        play_sur_face.blit(show_num(num), (20, 550))
-        play_sur_face.blit(font.render("Num of cell: "+str(len(cell)), True, (0, 0, 0)), (20, 570))
+        play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
     return level+1, num
@@ -241,7 +266,7 @@ def beens_game(play_sur_face, level, num):
                 break
         return pos
     # 墙
-    Wall = beens_page(i)
+    Wall = beens_page(level)
     germ = [210, 210]
     time = 0
     di = ''
@@ -250,6 +275,8 @@ def beens_game(play_sur_face, level, num):
     germ_color = (0, 158, 128)
     food_color = (255, 255, 0)
     cell_color = (0, 0, 0)
+    back_color = (255, 235, 215)
+    wall_color = (200, 0, 0)
     # 保卫细胞
     cell = []
     food = []
@@ -257,6 +284,9 @@ def beens_game(play_sur_face, level, num):
         cell.append(gen())
     for i in range(400-220):
         food.append(gen())
+
+    font = pygame.font.SysFont("simhei", 12)
+    play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
 
     # 设置时钟
     clock = pygame.time.Clock()
@@ -281,7 +311,8 @@ def beens_game(play_sur_face, level, num):
                 if event.key == K_DOWN or event.key == ord('s'):
                     di = 3
                 if event.key == ord('l'):
-                    num *= 2
+                    num *= 100
+                    return level+1, num
 
         # 如果前进方向没有墙主角可以运动
         if di != '' and time % 10 == 0:
@@ -290,18 +321,17 @@ def beens_game(play_sur_face, level, num):
                 germ = tmp
             if germ in cell and num > 1:
                 num = int(0.85 * num)
-            di = ''
+            # di = ''
             if germ in food:
                 food.remove(germ)
                 num += 100 ** level
             if len(food) < 30:
                 return level+1, num
 
-        # 开始绘制，背景为全黑，将墙画入地图
-        play_sur_face.fill(pygame.Color(255, 255, 255))
-        # 开始画墙
+        # 开始绘制地图
+        play_sur_face.fill(back_color)
         for w in Wall:
-            pygame.draw.rect(play_sur_face, pygame.Color(255, 0, 0), Rect(w[0], w[1], 30, 30)) 
+            pygame.draw.rect(play_sur_face, wall_color, Rect(w[0], w[1], 30, 30)) 
 
         # 判断每个保卫细胞的状态
         for i in range(len(cell)):
@@ -317,14 +347,12 @@ def beens_game(play_sur_face, level, num):
         for c in cell:
             pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 30, 30))
         pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 30, 30))
-        # 显示生命值
-        text_surface = pygame.font.SysFont("", 20).render("Num: {l}".format(l = num), True, (0, 0, 0))
-        play_sur_face.blit(text_surface, (10, 10))
+        
+        play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
     return
 
-# TODO
 # 细菌传播，从a到b
 def move(play_sur_face, a, b, num):
     def gen():
@@ -346,6 +374,8 @@ def move(play_sur_face, a, b, num):
     germ_color = (0, 158, 128)
     keys_color = (255, 255, 0)
     cell_color = (0, 0, 0)
+    back_color = (255, 235, 215)
+    wall_color = (200, 0, 0)
     # 保卫细胞
     cell = []
     keys = []
@@ -353,6 +383,9 @@ def move(play_sur_face, a, b, num):
         cell.append(gen())
     for i in range(b+1):
         keys.append(gen())
+
+    font = pygame.font.SysFont("simhei", 12)
+    play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
 
     # 设置时钟
     clock = pygame.time.Clock()
@@ -367,7 +400,7 @@ def move(play_sur_face, a, b, num):
                 if event.key == K_ESCAPE:
                     if num != 1:
                         num = int(0.5*num)
-                    return Fasle, num
+                    return a, num
                 if event.key == K_RIGHT or event.key == ord('d'):
                     di = 0
                 if event.key == K_LEFT or event.key == ord('a'):
@@ -376,8 +409,13 @@ def move(play_sur_face, a, b, num):
                     di = 2
                 if event.key == K_DOWN or event.key == ord('s'):
                     di = 3
+                if event.key == ord('c'):
+                    if len(keys) != 0:
+                        germ = keys[0]
+                    else:
+                        germ = door
                 if event.key == ord('l'):
-                    return True, num
+                    return b, num
 
         # 如果前进方向没有墙主角可以运动
         if di != '' and time % 10 == 0:
@@ -392,7 +430,7 @@ def move(play_sur_face, a, b, num):
                 if len(keys) == 0:
                     Wall.remove(door)
             if germ == door:
-                return True, num
+                return b, num
 
         # 改变每个保卫细胞的状态
         for i in range(len(cell)):
@@ -403,21 +441,20 @@ def move(play_sur_face, a, b, num):
             if tmp not in Wall:
                 cell[i] = tmp
 
-        play_sur_face.fill(pygame.Color(255, 255, 255))
+        play_sur_face.fill(back_color)
         pygame.draw.rect(play_sur_face, keys_color, Rect(door[0], door[1], 30, 30)) 
         for w in Wall:
-            pygame.draw.rect(play_sur_face, pygame.Color(255, 0, 0), Rect(w[0], w[1], 30, 30)) 
+            pygame.draw.rect(play_sur_face, wall_color, Rect(w[0], w[1], 30, 30)) 
         for k in keys:
             pygame.draw.rect(play_sur_face, keys_color, (k[0]+10, k[1]+5, 10, 20))
         for c in cell:
             pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 30, 30))
         pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 30, 30))
-        # 显示生命值
-        text_surface = pygame.font.SysFont("", 20).render("num: {}".format(num), True, (0, 0, 0))
-        play_sur_face.blit(text_surface, (10, 10))
+
+        play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
-    return Fasle, num
+    return a, num
 
 def beens_page(i):
     Wall = [
