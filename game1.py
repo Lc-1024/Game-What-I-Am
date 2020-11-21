@@ -114,7 +114,7 @@ play_sur_face = pygame.display.set_mode(size)
 # 设置标题
 pygame.display.set_caption("What I Am?")
 # 加载图标
-pygame.display.set_icon(pygame.image.load("photo.png"))
+pygame.display.set_icon(pygame.image.load("image/photo.png"))
 
 # 开始动画
 if germ.place == 1:

@@ -39,9 +39,9 @@ def first_game(play_sur_face):
     pygame.display.update()
 
     bg = pygame.transform.scale(pygame.image.load("image/first.jpg"), (5500, 600))
-    bd = pygame.image.load("d.png")
-    bar_up = pygame.image.load("photo.png")
-    bar_down = pygame.image.load("photo.png")
+    bd = pygame.image.load("image/d.png")
+    bar_up = pygame.image.load("image/photo.png")
+    bar_down = pygame.image.load("image/photo.png")
     play_sur_face.blit(bg, (-time, 0))
     play_sur_face.blit(bd, (bird[0]-20, bird[1]-20))
     pygame.display.update()
