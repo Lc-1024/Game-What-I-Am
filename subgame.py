@@ -3,17 +3,30 @@ import random
 import sys
 from pygame.locals import *
 
-# 小怪类
-class master:
-    def __init__(self, x0, y0, d0):
-        self.x = x0
-        self.y = y0
-        self.d = d0
-        self.life = 3
-        self.walking = False # 小怪是否在行走
-        self.attack = False # 小怪是否在攻击主角
-        self.time = 0 # 为了防止小怪走太快，只有在time为30的倍数的时候才会移动
-
+help_size = (555, 12, 30, 16)
+help_color  = [(220,220,220), (250,250,250)]
+def show_help(play_sur_face, clock, place):
+    pygame.draw.rect(play_sur_face, pygame.Color(255,255,255), Rect(0, 0, 600, 600))
+    font = pygame.font.SysFont("simhei", 20) # 20 -- 字体大小
+    tip_font = pygame.font.SysFont("simhei", 12)
+    sentences = [["想要进入人体，你必须突破第一道防线", "按上键/空格或单击任意位置往上跳", "从皮肤的缝隙中进入人体吧", "小心重力会把你往下拉", "注意不要撞墙了哦"],
+                 ["看呐，是食物，快吃了它", "小心避开那些免疫细胞", "被他们抓到，你的后代会被消灭", "但是吃到东西你就会增长", "努力吧，吃到一定数量后会通关", "按ESC可以逃跑，但是有的后代会死"],
+                 ["好多食物啊", "四处走走，它们都可以吃", "小心别被免疫细胞抓住，它们会消灭你的后代", "吃完大部分食物后通关，你也可以剩一些不吃的", "按ESC可以逃跑，但是有的后代会死"], 
+                 ["收集所有的钥匙吧", "收集完大部分钥匙之后大门会打开", "走出大门，你就能到另一个地方", "同样的，要小心那些免疫细胞", "要保护好你的后代呢"]]
+    for i, sen in enumerate(sentences[place]):
+        play_sur_face.blit(font.render(sen, True, (0,0,0)), (20, 30+i*40))
+    play_sur_face.blit(tip_font.render("按任意键返回", True, (0,0,0)), (250, 550))
+    pygame.display.flip()
+    while True:
+        clock.tick(60)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == KEYDOWN:
+                return
+            elif event.type == MOUSEBUTTONDOWN:
+                return
 
 # 第一个小游戏，细菌从皮肤破损中进入人体
 def first_game(play_sur_face):
@@ -47,7 +60,8 @@ def first_game(play_sur_face):
     pygame.display.update()
     clock = pygame.time.Clock()
 
-    clock.tick(1)
+    font = pygame.font.SysFont("simhei", 12)
+    clock.tick(5)
     while True:
         clock.tick(60)
         time += 1
@@ -61,27 +75,31 @@ def first_game(play_sur_face):
                 D = U + bar_size[1] + random.randint(200, int(350-time/50))
                 bar.append([600, U, D])
             elif event.type == MOUSEBUTTONDOWN:
-                clock.tick(26)
-                O = random.randint(0, 3)
-                if O != 0:
-                    O = 1
-                    T = 50
+                mouse = pygame.mouse.get_pos()
+                if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+                    show_help(play_sur_face, clock, 0)
                 else:
-                    T = 100
+                    clock.tick(26)
+                    O = random.randint(0, 3)
+                    if O != 0:
+                        O = 1
+                        T = 50
+                    else:
+                        T = 100
 
-                J += 1
-                if J <= 39:
-                    V = -95
-                elif (J >= 28) and (J <= 50):
-                    V = I
-                    I += 0.2
-                else:
-                    V = I
-                    I += 0.4
+                    J += 1
+                    if J <= 39:
+                        V = -95
+                    elif (J >= 28) and (J <= 50):
+                        V = I
+                        I += 0.2
+                    else:
+                        V = I
+                        I += 0.4
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:  
                     return 1
-                if event.key == pygame.K_UP or event.key == pygame.K_SPACE:
+                elif event.key == pygame.K_UP or event.key == pygame.K_SPACE:
                     clock.tick(26)
                     O = random.randint(0, 3)
                     if O != 0:
@@ -101,6 +119,8 @@ def first_game(play_sur_face):
                         I += 0.4
                 elif event.key == ord('l'):
                     return 2
+                elif event.key == ord('h'):
+                    show_help(play_sur_face, clock, 0)
 
         bird[1] += round(V * t + 0.5 * A * t * t)
         V += A * t
@@ -137,6 +157,12 @@ def first_game(play_sur_face):
             if i == len(bar)-1 and bar[0][0] < -bar_size[0]:
                 bar.remove(bar[0])
 
+        mouse = pygame.mouse.get_pos()
+        if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+            pygame.draw.rect(play_sur_face, help_color[1], help_size)
+        else:
+            pygame.draw.rect(play_sur_face, help_color[0], help_size)
+        play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         # pygame.draw.rect(play_sur_face, (0,0,0), (bird[0], bird[1], 20,20))
         play_sur_face.blit(bd, (bird[0]-20, bird[1]-20))
         pygame.display.update()
@@ -181,6 +207,10 @@ def snake_game(play_sur_face, level, num):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return level, num
+            elif event.type == MOUSEBUTTONDOWN:
+                mouse = pygame.mouse.get_pos()
+                if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+                    show_help(play_sur_face, clock, 1)
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     if num != 1:
@@ -199,6 +229,8 @@ def snake_game(play_sur_face, level, num):
                 if event.key == ord('l'):
                     num *= 100
                     return level+1, num
+                if event.key == ord('h'):
+                    show_help(play_sur_face, clock, 1)
         
         # 移动一下
         if time % time_gap == 0:
@@ -249,28 +281,38 @@ def snake_game(play_sur_face, level, num):
             pygame.draw.rect(play_sur_face, food_color, (f[0]+1, f[1]+1, 18, 18))
         pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
+        mouse = pygame.mouse.get_pos()
+        if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+            pygame.draw.rect(play_sur_face, help_color[1], help_size)
+        else:
+            pygame.draw.rect(play_sur_face, help_color[0], help_size)
+        play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         pygame.display.flip()
 
     return level+1, num
 
 # 吃豆子
 def beens_game(play_sur_face, level, num):
-    def gen():
+    def gen_germ():
         while True:
-            pos = [random.randint(0, 19)*30, random.randint(0, 19)*30]
-            if germ[0] == pos[0] and germ[1] == pos[1]:
-                continue
-            elif pos in Wall or pos in food:
-                continue
-            else:
+            pos = [random.randint(1, 29), random.randint(1, 29)]
+            if w[pos[0]][pos[1]] == 0:
+                pos = [pos[0]*20-10, pos[1]*20-10]
+                break
+        return pos
+    def gen_cell():
+        while True:
+            pos = [random.randint(1, 29), random.randint(1, 29)]
+            if w[pos[0]][pos[1]] == 0 and pos[0]*20-10 != germ[0] and pos[1]*20-10 != germ[1]:
+                pos = [pos[0]*20-10, pos[1]*20-10]
                 break
         return pos
     # 墙
-    Wall = beens_page(level)
-    germ = [210, 210]
+    wall, w = beens_page()
+    germ = gen_germ()
     time = 0
     di = ''
-    dx = [[30,0], [-30,0], [0,-30], [0,30], [0,0]]
+    dx = [[20,0], [-20,0], [0,-20], [0,20]]
     # 颜色可以自定义
     germ_color = (0, 158, 128)
     food_color = (255, 255, 0)
@@ -280,10 +322,13 @@ def beens_game(play_sur_face, level, num):
     # 保卫细胞
     cell = []
     food = []
-    for i in range(2*level+3):
-        cell.append(gen())
-    for i in range(400-220):
-        food.append(gen())
+    for i in range(2*level+2):
+        cell.append(gen_cell())
+    for i in range(31):
+        for j in range(31):
+            if w[i][j] == 0:
+                food.append([i*20-10, j*20-10])
+    food.remove(germ)
 
     font = pygame.font.SysFont("simhei", 12)
     play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
@@ -297,6 +342,10 @@ def beens_game(play_sur_face, level, num):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == MOUSEBUTTONDOWN:
+                mouse = pygame.mouse.get_pos()
+                if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+                    show_help(play_sur_face, clock, 2)
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     if num != 1:
@@ -313,11 +362,13 @@ def beens_game(play_sur_face, level, num):
                 if event.key == ord('l'):
                     num *= 100
                     return level+1, num
+                if event.key == ord('h'):
+                    show_help(play_sur_face, clock, 1)
 
         # 如果前进方向没有墙主角可以运动
         if di != '' and time % 10 == 0:
             tmp = [germ[0]+dx[di][0], germ[1]+dx[di][1]]
-            if tmp not in Wall:
+            if tmp not in wall:
                 germ = tmp
             if germ in cell and num > 1:
                 num = int(0.85 * num)
@@ -330,8 +381,8 @@ def beens_game(play_sur_face, level, num):
 
         # 开始绘制地图
         play_sur_face.fill(back_color)
-        for w in Wall:
-            pygame.draw.rect(play_sur_face, wall_color, Rect(w[0], w[1], 30, 30)) 
+        for w in wall:
+            pygame.draw.rect(play_sur_face, wall_color, Rect(w[0], w[1], 20, 20)) 
 
         # 判断每个保卫细胞的状态
         for i in range(len(cell)):
@@ -339,15 +390,21 @@ def beens_game(play_sur_face, level, num):
                 break
             d = random.randint(0,3)
             tmp = [cell[i][0]+dx[d][0], cell[i][1]+dx[d][1]]
-            if tmp not in Wall:
+            if tmp not in wall:
                 cell[i] = tmp
 
         for f in food:
-            pygame.draw.rect(play_sur_face, food_color, (f[0]+10, f[1]+10, 10, 10))
+            pygame.draw.rect(play_sur_face, food_color, (f[0]+6, f[1]+6, 8, 8))
         for c in cell:
-            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 30, 30))
-        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 30, 30))
-        
+            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
+        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
+
+        mouse = pygame.mouse.get_pos()
+        if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+            pygame.draw.rect(play_sur_face, help_color[1], help_size)
+        else:
+            pygame.draw.rect(play_sur_face, help_color[0], help_size)
+        play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
@@ -357,19 +414,19 @@ def beens_game(play_sur_face, level, num):
 def move(play_sur_face, a, b, num):
     def gen():
         while True:
-            pos = [random.randint(0, 19)*30, random.randint(0, 19)*30]
+            pos = [random.randint(1, 29)*20-10, random.randint(1, 29)*20-10]
             if germ[0] == pos[0] and germ[1] == pos[1]:
                 continue
-            elif pos in Wall or pos in keys:
+            elif pos in wall or pos in keys:
                 continue
             else:
                 break
         return pos
     # 墙
-    germ, door, Wall = move_page(a, b)
+    germ, door, wall = move_page(a, b)
     time = 0
     di = ''
-    dx = [[30,0], [-30,0], [0,-30], [0,30], [0,0]]
+    dx = [[20,0], [-20,0], [0,-20], [0,20]]
     # 颜色可以自定义
     germ_color = (0, 158, 128)
     keys_color = (255, 255, 0)
@@ -396,6 +453,10 @@ def move(play_sur_face, a, b, num):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == MOUSEBUTTONDOWN:
+                mouse = pygame.mouse.get_pos()
+                if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+                    show_help(play_sur_face, clock, 3)
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     if num != 1:
@@ -416,19 +477,21 @@ def move(play_sur_face, a, b, num):
                         germ = door
                 if event.key == ord('l'):
                     return b, num
+                if event.key == ord('h'):
+                    show_help(play_sur_face, clock, 1)
 
         # 如果前进方向没有墙主角可以运动
         if di != '' and time % 10 == 0:
             tmp = [germ[0]+dx[di][0], germ[1]+dx[di][1]]
-            if tmp not in Wall:
+            if tmp not in wall:
                 germ = tmp
             if germ in cell and num > 1:
                 num = int(0.85 * num)
-            di = ''
+            # di = ''
             if germ in keys:
                 keys.remove(germ)
                 if len(keys) == 0:
-                    Wall.remove(door)
+                    wall.remove(door)
             if germ == door:
                 return b, num
 
@@ -438,74 +501,138 @@ def move(play_sur_face, a, b, num):
                 break
             d = random.randint(0,3)
             tmp = [cell[i][0]+dx[d][0], cell[i][1]+dx[d][1]]
-            if tmp not in Wall:
+            if tmp not in wall:
                 cell[i] = tmp
 
         play_sur_face.fill(back_color)
-        pygame.draw.rect(play_sur_face, keys_color, Rect(door[0], door[1], 30, 30)) 
-        for w in Wall:
-            pygame.draw.rect(play_sur_face, wall_color, Rect(w[0], w[1], 30, 30)) 
+        pygame.draw.rect(play_sur_face, keys_color, Rect(door[0], door[1], 20, 20)) 
+        for w in wall:
+            pygame.draw.rect(play_sur_face, wall_color, Rect(w[0], w[1], 20, 20)) 
         for k in keys:
-            pygame.draw.rect(play_sur_face, keys_color, (k[0]+10, k[1]+5, 10, 20))
+            pygame.draw.rect(play_sur_face, keys_color, (k[0]+6, k[1]+3, 8, 12))
         for c in cell:
-            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 30, 30))
-        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 30, 30))
+            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
+        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
 
+        mouse = pygame.mouse.get_pos()
+        if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
+            pygame.draw.rect(play_sur_face, help_color[1], help_size)
+        else:
+            pygame.draw.rect(play_sur_face, help_color[0], help_size)
+        play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
     return a, num
 
-def beens_page(i):
-    Wall = [
-        [0, 0], [30, 0], [60, 0], [90, 0], [120, 0], [150, 0], [180, 0], [210, 0], [240, 0], [270, 0], [300, 0], [330, 0], [360, 0], [390, 0], [420, 0], [450, 0], [480, 0], [510, 0], [540, 0], [570, 0], 
-        [0, 30], [60, 30], [180, 30], [300, 30], [420, 30], [510, 30], [570, 30],
-        [0, 60], [60, 60], [120, 60], [180, 60], [240, 60], [270, 60], [300, 60], [360, 60], [420, 60], [450, 60], [510, 60], [570, 60], 
-        [0, 90], [120, 90], [360, 90], [570, 90], 
-        [0, 120], [60, 120], [90, 120], [120, 120], [150, 120], [180, 120], [240, 120], [300, 120], [330, 120], [360, 120], [390, 120], [420, 120], [450, 120], [480, 120], [510, 120], [540, 120], [570, 120], 
-        [0, 150], [120, 150], [240, 150], [300, 150], [570, 150], 
-        [0, 180], [30, 180], [60, 180], [120, 180], [180, 180], [210, 180], [240, 180], [270, 180], [300, 180], [360, 180], [390, 180], [420, 180], [450, 180], [480, 180], [510, 180], [540, 180], [570, 180], 
-        [0, 210], [60, 210], [120, 210], [360, 210], [570, 210], 
-        [0, 240], [60, 240], [120, 240], [180, 240], [210, 240], [240, 240], [300, 240], [330, 240], [360, 240], [390, 240], [420, 240], [450, 240], [480, 240], [510, 240], [570, 240], 
-        [0, 270], [60, 270], [120, 270], [180, 270], [510, 270], [570, 270], 
-        [0, 300], [60, 300], [120, 300], [180, 300], [240, 300], [270, 300], [300, 300], [330, 300], [360, 300], [390, 300], [420, 300], [450, 300], [510, 300], [570, 300], 
-        [0, 330], [60, 330], [120, 330], [180, 330], [240, 330], [300, 330], [420, 330], [510, 330], [570, 330], 
-        [0, 360], [60, 360], [120, 360], [180, 360], [240, 360], [360, 360], [480, 360], [510, 360], [570, 360], 
-        [0, 390], [60, 390], [90, 390], [120, 390], [180, 390], [240, 390], [270, 390], [300, 390], [330, 390], [360, 390], [390, 390], [510, 390], [570, 390], 
-        [0, 420], [180, 420], [240, 420], [450, 420], [480, 420], [510, 420], [570, 420], 
-        [0, 450], [30, 450], [60, 450], [90, 450], [120, 450], [150, 450], [180, 450], [240, 450], [270, 450], [300, 450], [330, 450], [360, 450], [390, 450], [570, 450], 
-        [0, 480], [60, 480], [180, 480], [210, 480], [240, 480], [300, 480], [510, 480], [570, 480], 
-        [0, 510], [60, 510], [120, 510], [210, 510], [300, 510], [360, 510], [420, 510], [450, 510], [480, 510], [510, 510], [570, 510], 
-        [0, 540], [120, 540], [150, 540], [360, 540], [510, 540], 
-        [0, 570], [30, 570], [60, 570], [90, 570], [120, 570], [150, 570], [180, 570], [210, 570], [240, 570], [270, 570], [300, 570], [330, 570], [360, 570], [390, 570], [420, 570], [450, 570], [480, 570], [510, 570], [540, 570], [570, 570],
-        [570, 540]
-    ]
-    return Wall
+
+def getNeighbours(wall, node):
+    di = [[0,1], [1,0], [0,-1], [-1,0]]
+    n = []
+    for i in range(4):
+        if 0 < node[0]+2*di[i][0] < 30 and 0 < node[1]+2*di[i][1] < 30 and wall[node[0]+di[i][0]][node[1]+di[i][1]] != 0 and wall[node[0]+2*di[i][0]][node[1]+2*di[i][1]] != 0:
+            n.append([node[0]+di[i][0], node[1]+di[i][1]])
+            n.append([node[0]+2*di[i][0], node[1]+2*di[i][1]])
+    return n
+
+def beens_page():
+    wall = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1
+            , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+            , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+            , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+            , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+            , 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+            , 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+    node = [1,1]
+    wall[1][1] = 0
+    stack = []
+    while True:
+        n = getNeighbours(wall, node)
+        if len(n) == 0:
+            if len(stack) == 0:
+                break
+            node = stack[0]
+            stack.remove(stack[0])
+        else:
+            i = 2*random.randint(0, int(len(n)/2-1))
+            wall[n[i][0]][n[i][1]] = 0
+            wall[n[i+1][0]][n[i+1][1]] = 0
+            node = n[i+1]
+            stack.append(n[i+1])
+    for i in range(10):
+        while True:
+            p = [random.randint(1,29), random.randint(1,29)]
+            if wall[p[0]][p[1]] == 1:
+                wall[p[0]][p[1]] = 0
+                break
+    w = []
+    for i in range(31):
+        for j in range(31):
+            if wall[i][j] == 1:
+                w.append([20*i-10,20*j-10])
+    return w, wall
 
 def move_page(a, b):
-    germ = [30, 0]
-    door = [570, 540]
-    Wall = [
-        [0, 0], [30, -30], [60, 0], [90, 0], [120, 0], [150, 0], [180, 0], [210, 0], [240, 0], [270, 0], [300, 0], [330, 0], [360, 0], [390, 0], [420, 0], [450, 0], [480, 0], [510, 0], [540, 0], [570, 0], 
-        [0, 30], [60, 30], [180, 30], [300, 30], [420, 30], [510, 30], [570, 30],
-        [0, 60], [60, 60], [120, 60], [180, 60], [240, 60], [270, 60], [300, 60], [360, 60], [420, 60], [450, 60], [510, 60], [570, 60], 
-        [0, 90], [120, 90], [360, 90], [570, 90], 
-        [0, 120], [60, 120], [90, 120], [120, 120], [150, 120], [180, 120], [240, 120], [300, 120], [330, 120], [360, 120], [390, 120], [420, 120], [450, 120], [480, 120], [510, 120], [540, 120], [570, 120], 
-        [0, 150], [120, 150], [240, 150], [300, 150], [570, 150], 
-        [0, 180], [30, 180], [60, 180], [120, 180], [180, 180], [210, 180], [240, 180], [270, 180], [300, 180], [360, 180], [390, 180], [420, 180], [450, 180], [480, 180], [510, 180], [540, 180], [570, 180], 
-        [0, 210], [60, 210], [120, 210], [360, 210], [570, 210], 
-        [0, 240], [60, 240], [120, 240], [180, 240], [210, 240], [240, 240], [300, 240], [330, 240], [360, 240], [390, 240], [420, 240], [450, 240], [480, 240], [510, 240], [570, 240], 
-        [0, 270], [60, 270], [120, 270], [180, 270], [510, 270], [570, 270], 
-        [0, 300], [60, 300], [120, 300], [180, 300], [240, 300], [270, 300], [300, 300], [330, 300], [360, 300], [390, 300], [420, 300], [450, 300], [510, 300], [570, 300], 
-        [0, 330], [60, 330], [120, 330], [180, 330], [240, 330], [300, 330], [420, 330], [510, 330], [570, 330], 
-        [0, 360], [60, 360], [120, 360], [180, 360], [240, 360], [360, 360], [480, 360], [510, 360], [570, 360], 
-        [0, 390], [60, 390], [90, 390], [120, 390], [180, 390], [240, 390], [270, 390], [300, 390], [330, 390], [360, 390], [390, 390], [510, 390], [570, 390], 
-        [0, 420], [180, 420], [240, 420], [450, 420], [480, 420], [510, 420], [570, 420], 
-        [0, 450], [30, 450], [60, 450], [90, 450], [120, 450], [150, 450], [180, 450], [240, 450], [270, 450], [300, 450], [330, 450], [360, 450], [390, 450], [570, 450], 
-        [0, 480], [60, 480], [180, 480], [210, 480], [240, 480], [300, 480], [510, 480], [570, 480], 
-        [0, 510], [60, 510], [120, 510], [210, 510], [300, 510], [360, 510], [420, 510], [450, 510], [480, 510], [510, 510], [570, 510], 
-        [0, 540], [120, 540], [150, 540], [360, 540], [510, 540], 
-        [0, 570], [30, 570], [60, 570], [90, 570], [120, 570], [150, 570], [180, 570], [210, 570], [240, 570], [270, 570], [300, 570], [330, 570], [360, 570], [390, 570], [420, 570], [450, 570], [480, 570], [510, 570], [540, 570], [570, 570],
-        [570, 540]
-    ]
-    return germ, door, Wall
+    germ = []
+    door = []
+    if (b != 5 and a < b) or (a == 5):
+        germ = [10, 10]
+        door = [570, 590]
+    else:
+        germ = [570, 570]
+        door = [10, -10]
+    w = []
+    wall = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1
+        , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        , 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        , 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+    node = [1,1]
+    wall[1][1] = 0
+    stack = []
+    while True:
+        n = getNeighbours(wall, node)
+        if len(n) == 0:
+            if len(stack) == 0:
+                break
+            node = stack[0]
+            stack.remove(stack[0])
+        else:
+            i = 2*random.randint(0, int(len(n)/2-1))
+            wall[n[i][0]][n[i][1]] = 0
+            wall[n[i+1][0]][n[i+1][1]] = 0
+            node = n[i+1]
+            stack.append(n[i+1])
+    for i in range(31):
+        for j in range(31):
+            if wall[i][j] == 1:
+                w.append([20*i-10,20*j-10])
+    return germ, door, w
