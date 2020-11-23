@@ -7,14 +7,30 @@ import subgame
 def show_help(place):
     pygame.draw.rect(play_sur_face, pygame.Color(255,255,255), Rect(0, 0, 600, 600))
     font = pygame.font.SysFont("simhei", 20) # 20 -- 字体大小
-    tip_font = pygame.font.SysFont("simhei", 10)
-    sentences = [["这是一款关于细菌和人的小游戏", "你将成为一个小细菌", "你能突破第一道防线进入人体", "亦能吸收营养物质生长繁殖", "但是要小心不要被免疫细胞消灭了哦", "你可能能变得富有感染力、控制力", "又或许你可以融入这个地方"],
+    tip_font = pygame.font.SysFont("simhei", 12)
+    sentences = [["这是一款关于细菌和人的小游戏", "你将成为一个小细菌", "你能突破第一道防线进入人体", "亦能吸收营养物质生长繁殖", "但是要小心不要被免疫细胞消灭了哦", "你可能能变得富有感染力、控制力", "又或许你可以融入这个地方", "最新版本/游戏源码可以到GitHub获取", "http://github.com/Lc-1024/Game-What-I-Am"],
                  ["你好像是一个弱小的细菌", "这里似乎可以当你的庇护所", "尝试进入他的体内吧", "那里会有享受不完的美食", "说不定，你还能变得更强大"],
                  ["看呐，你成功进来了", "四处走走，看看有没有什么可以吃的", "说不定你还能繁殖出更多的后代呢", "你也可以到别的地方逛逛吧", "不知道会不会变异出什么新能力"], 
                  ["这好像是人类的心肺系统", "从这里可以走遍全身上下呢", "或许你可以尝试让他咳嗽？", "这样你的后代就能去其他人身上了", "那样数量是不是可以越来越多"], 
                  ["啊，这里有好多吃的", "在这里可以舒服的过完一辈子吧", "为什么这些细胞都在攻击我，我明明没有恶意", "要是我们能做朋友就好了"],
                  ["看呐，这里好多沟沟", "这是不是就是这个人类的大脑？", "这具身体太诱人了", "如果他能属于我就好了", "我要成为这里的王！"]]
     for i, sen in enumerate(sentences[place]):
+        play_sur_face.blit(font.render(sen, True, (0,0,0)), (20, 30+i*40))
+    play_sur_face.blit(tip_font.render("按任意键返回", True, (0,0,0)), (250, 550))
+    pygame.display.flip()
+    wait_to_continue()
+
+def show_end(end):
+    pygame.draw.rect(play_sur_face, pygame.Color(255,255,255), Rect(0, 0, 600, 600))
+    font = pygame.font.SysFont("simhei", 20) # 20 -- 字体大小
+    tip_font = pygame.font.SysFont("simhei", 12)
+    sentences = [["这是一款关于细菌和人的小游戏", "你将成为一个小细菌", "你能突破第一道防线进入人体", "亦能吸收营养物质生长繁殖", "但是要小心不要被免疫细胞消灭了哦", "你可能能变得富有感染力、控制力", "又或许你可以融入这个地方", "最新版本/游戏源码可以到GitHub获取", "http://github.com/Lc-1024/Game-What-I-Am"],
+                 ["你好像是一个弱小的细菌", "这里似乎可以当你的庇护所", "尝试进入他的体内吧", "那里会有享受不完的美食", "说不定，你还能变得更强大"],
+                 ["看呐，你成功进来了", "四处走走，看看有没有什么可以吃的", "说不定你还能繁殖出更多的后代呢", "你也可以到别的地方逛逛吧", "不知道会不会变异出什么新能力"], 
+                 ["这好像是人类的心肺系统", "从这里可以走遍全身上下呢", "或许你可以尝试让他咳嗽？", "这样你的后代就能去其他人身上了", "那样数量是不是可以越来越多"], 
+                 ["啊，这里有好多吃的", "在这里可以舒服的过完一辈子吧", "为什么这些细胞都在攻击我，我明明没有恶意", "要是我们能做朋友就好了"],
+                 ["看呐，这里好多沟沟", "这是不是就是这个人类的大脑？", "这具身体太诱人了", "如果他能属于我就好了", "我要成为这里的王！"]]
+    for i, sen in enumerate(sentences[end]):
         play_sur_face.blit(font.render(sen, True, (0,0,0)), (20, 30+i*40))
     play_sur_face.blit(tip_font.render("按任意键返回", True, (0,0,0)), (250, 550))
     pygame.display.flip()
@@ -30,7 +46,7 @@ def wait_to_continue():
                 sys.exit()
             elif event.type == KEYDOWN:
                 return
-            elif event.type == MOUSEBUTTONDOWN:
+            elif event.type == MOUSEBUTTONUP:
                 return
 
 class game:
@@ -39,10 +55,27 @@ class game:
         self.num = 1            # 细菌数量
         self.time = 0
         self.alive = True
-        self.rect_size = [(405, 200, 20, 20)]
+        self.rect_size = [(345, 283, 20, 20)]
+        self.scale = [0, (0, 0, 300, 300), (230, 200, 380, 370), (220, 200, 400, 400), (200, 350, 450, 550), (250, 150, 350, 280)]
 
         self.first = False      # 从体外入侵到头部/躯干的关卡，False表示尚未通关，通关后不再开启
         self.level = 0          # 通过贪吃蛇、吃豆人进行增长，数字表示难度
+        self.picture = pygame.image.load("image/germ.bmp")
+        self.x = [0, 80, 230, 300, 350, 300]
+        self.y = [0, 80, 200, 200, 350, 200]
+
+        self.end = 0            # 0死亡；1传染性细菌；2致死细菌；3共生细菌；4僵尸型细菌
+
+    def random_move(self, time):
+        if time % 10 == 0:
+            tmpX = random.randint(-5, 5)
+            tmpY = random.randint(-5, 5)
+            if self.scale[self.place][0] < self.x[self.place] + tmpX < self.scale[self.place][2]:
+                self.x[self.place] += tmpX
+            if self.scale[self.place][1] < self.y[self.place] + tmpY < self.scale[self.place][3]:
+                self.y[self.place] += tmpY
+        play_sur_face.blit(germ.picture, (germ.x[germ.place], germ.y[germ.place]))
+        return time+1
 
     def show(self):
         if self.place == 2:
@@ -105,16 +138,19 @@ text_color  = [(96,96,96), (192,192,192), (255,255,255)]
 size = (600, 600)
 help_size = (550, 10, 40, 20)
 clock = pygame.time.Clock()
+time = 0
 font = pygame.font.SysFont("simhei", 20) # simhei是简体字，也可以到C:/Windows/Fonts/找个中文字体
 tip_font = pygame.font.SysFont("simhei", 12)
 
 germ = game()
+germ.place = 3
 # 这是游戏框
 play_sur_face = pygame.display.set_mode(size)
 # 设置标题
 pygame.display.set_caption("What I Am?")
 # 加载图标
-pygame.display.set_icon(pygame.image.load("image/photo.png"))
+pygame.display.set_icon(pygame.image.load("image/germ.jpg"))
+
 
 # 开始动画
 if germ.place == 1:
@@ -126,7 +162,7 @@ if germ.place == 1:
             if event.type == pygame.QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE): 
                 pygame.quit()
                 sys.exit()
-            elif event.type == MOUSEBUTTONDOWN:
+            elif event.type == MOUSEBUTTONUP:
                 mouse = pygame.mouse.get_pos()
                 if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
                     show_help(0)
@@ -173,12 +209,13 @@ while germ.place == 1:
     clock.tick(60)
     # 插入开始图片
     play_sur_face.blit(pygame.image.load("image/out.jpg"), (0, 0))
+    time = germ.random_move(time)
     # 检测退出
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == MOUSEBUTTONDOWN:
+        elif event.type == MOUSEBUTTONUP:
             mouse = pygame.mouse.get_pos()
             if germ.rect_size[0][0] + germ.rect_size[0][2] > mouse[0] > germ.rect_size[0][0] and germ.rect_size[0][1] + germ.rect_size[0][3] > mouse[1] > germ.rect_size[0][1]:
                 germ.place = subgame.first_game(play_sur_face)
@@ -204,7 +241,6 @@ while germ.place == 1:
     play_sur_face.blit(tip_font.render("Help", True, (0,0,0)), (help_size[0]+8, help_size[1]+3))
     pygame.display.update()
 
-germ.place = 2
 if germ.place == 2:
     pygame.draw.rect(play_sur_face, pygame.Color(0, 0, 0), Rect(0, 0, 600, 600))
     for i in range(3):
@@ -231,11 +267,13 @@ if germ.place == 2:
 while germ.alive:
     clock.tick(60)
     germ.show()
+    time = germ.random_move(time)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == MOUSEBUTTONDOWN:
+        elif event.type == MOUSEBUTTONUP:
             mouse = pygame.mouse.get_pos()
             germ.click(mouse)
             if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
@@ -258,11 +296,7 @@ while germ.alive:
     play_sur_face.blit(tip_font.render("Help", True, (0,0,0)), (help_size[0]+8, help_size[1]+3))
     pygame.display.flip()
 
-
-pygame.draw.rect(play_sur_face, pygame.Color(255, 255, 255), Rect(0, 0, 600, 600))
-play_sur_face.blit(pygame.image.load("help.png") , (0, 0))
-pygame.display.flip()
-wait_to_continue()
+show_end(germ.end)
 
 pygame.quit()
 sys.exit()

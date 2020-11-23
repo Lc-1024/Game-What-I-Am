@@ -28,10 +28,19 @@ def show_help(play_sur_face, clock, place):
             elif event.type == MOUSEBUTTONDOWN:
                 return
 
+# 颜色可以自定义
+germ_color = (0, 158, 128)
+keys_color = (0, 0, 255)
+food_color = (255, 255, 0)
+cell_color = (0, 0, 0)
+back_color = (255, 235, 215)
+wall_color = (200, 0, 0)
+bar_color  = (238, 207, 161)
+
 # 第一个小游戏，细菌从皮肤破损中进入人体
 def first_game(play_sur_face):
     pygame.init()
-    time = 2000
+    time = 1000
     i = 0
     j = 0
     V = 0.0  # 速度
@@ -43,25 +52,25 @@ def first_game(play_sur_face):
     O = 1
     T = 0
     bar = []
-    bird = [100, 300]
-    size = [20, 20]
-    bar_size = [100, 285]
+    bird = [100, 200]
+    size = [20, 10]
+    bar_size = [100, 400]
 
     CREATE_ENEMY_EVENT = pygame.USEREVENT
     pygame.time.set_timer(CREATE_ENEMY_EVENT, 3500)
     pygame.display.update()
 
     bg = pygame.transform.scale(pygame.image.load("image/first.jpg"), (5500, 600))
-    bd = pygame.image.load("image/d.png")
+    bd = pygame.image.load("image/germ.bmp")
     bar_up = pygame.image.load("image/photo.png")
     bar_down = pygame.image.load("image/photo.png")
     play_sur_face.blit(bg, (-time, 0))
-    play_sur_face.blit(bd, (bird[0]-20, bird[1]-20))
+    play_sur_face.blit(bd, (bird[0], bird[1]))
     pygame.display.update()
     clock = pygame.time.Clock()
 
     font = pygame.font.SysFont("simhei", 12)
-    clock.tick(5)
+    clock.tick(3)
     while True:
         clock.tick(60)
         time += 1
@@ -72,7 +81,7 @@ def first_game(play_sur_face):
                 sys.exit()
             elif event.type == CREATE_ENEMY_EVENT:
                 U = random.randint(0, 255) - bar_size[1]
-                D = U + bar_size[1] + random.randint(200, int(350-time/50))
+                D = U + bar_size[1] + random.randint(230, int(350-time/50))
                 bar.append([600, U, D])
             elif event.type == MOUSEBUTTONDOWN:
                 mouse = pygame.mouse.get_pos()
@@ -142,18 +151,19 @@ def first_game(play_sur_face):
         elif V > 55:
             i = 8
 
-        for b in bar:
-            if bird[0]+size[0] >= b[0] and bird[0] <= b[0]+bar_size[0] and not (bird[1]+size[1] <= b[2] and bird[1] >= b[1]+bar_size[1]):
-                return 1
-
         play_sur_face.blit(bg, (-time, 0))
         for i in range(len(bar)):
-            play_sur_face.blit(bar_up,   (bar[i][0], bar[i][1]))
-            play_sur_face.blit(bar_down, (bar[i][0], bar[i][2]))
-            if time < 3500:
+            pygame.draw.rect(play_sur_face, bar_color, (bar[i][0], bar[i][1], bar_size[0], bar_size[1]))
+            pygame.draw.rect(play_sur_face, bar_color, (bar[i][0], bar[i][2], bar_size[0], bar_size[1]))
+            if time < 2000:
                 bar[i][0] -= 5
-            if time >= 3500:
+            elif time < 3000:
+                bar[i][0] -= 6
+            elif time < 4000:
                 bar[i][0] -= 7
+            else:
+                bar[i][0] -= 8
+            bar_size[0] = 100 + int((time - 1000) * 80 / 3900)
             if i == len(bar)-1 and bar[0][0] < -bar_size[0]:
                 bar.remove(bar[0])
 
@@ -164,8 +174,12 @@ def first_game(play_sur_face):
             pygame.draw.rect(play_sur_face, help_color[0], help_size)
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         # pygame.draw.rect(play_sur_face, (0,0,0), (bird[0], bird[1], 20,20))
-        play_sur_face.blit(bd, (bird[0]-20, bird[1]-20))
+        play_sur_face.blit(bd, (bird[0], bird[1]))
         pygame.display.update()
+
+        for b in bar:
+            if bird[0]+size[0] >= b[0] and bird[0] <= b[0]+bar_size[0] and not (bird[1]+5+size[1] <= b[2] and bird[1]+5 >= b[1]+bar_size[1]):
+                return 1
 
         if time >= 4900:
             return 2
@@ -187,11 +201,6 @@ def snake_game(play_sur_face, level, num):
     cell = []
     dx = [[20,0], [-20,0], [0,-20], [0,20], [0,0]]
 
-    # 颜色可以自定义
-    germ_color = (0, 158, 128)
-    food_color = (255, 255, 0)
-    cell_color = (0, 0, 0)
-    back_color = (255, 235, 215)
 
     font = pygame.font.SysFont("simhei", 12)
     play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
@@ -275,18 +284,18 @@ def snake_game(play_sur_face, level, num):
             return level, 0
 
         pygame.draw.rect(play_sur_face, back_color, (0, 0, 600, 600))
-        for c in cell:
-            pygame.draw.rect(play_sur_face, cell_color, (c[0]+1, c[1]+1, 18, 18))
-        for f in food:
-            pygame.draw.rect(play_sur_face, food_color, (f[0]+1, f[1]+1, 18, 18))
-        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
-        play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         mouse = pygame.mouse.get_pos()
         if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
             pygame.draw.rect(play_sur_face, help_color[1], help_size)
         else:
             pygame.draw.rect(play_sur_face, help_color[0], help_size)
+        for c in cell:
+            pygame.draw.rect(play_sur_face, cell_color, (c[0]+1, c[1]+1, 18, 18))
+        for f in food:
+            pygame.draw.rect(play_sur_face, food_color, (f[0]+1, f[1]+1, 18, 18))
+        play_sur_face.blit(pygame.image.load("image/germ.bmp"), (germ[0], germ[1]))
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
+        play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
     return level+1, num
@@ -313,12 +322,6 @@ def beens_game(play_sur_face, level, num):
     time = 0
     di = ''
     dx = [[20,0], [-20,0], [0,-20], [0,20]]
-    # 颜色可以自定义
-    germ_color = (0, 158, 128)
-    food_color = (255, 255, 0)
-    cell_color = (0, 0, 0)
-    back_color = (255, 235, 215)
-    wall_color = (200, 0, 0)
     # 保卫细胞
     cell = []
     food = []
@@ -393,19 +396,18 @@ def beens_game(play_sur_face, level, num):
             if tmp not in wall:
                 cell[i] = tmp
 
-        for f in food:
-            pygame.draw.rect(play_sur_face, food_color, (f[0]+6, f[1]+6, 8, 8))
-        for c in cell:
-            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
-        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
-
         mouse = pygame.mouse.get_pos()
         if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
             pygame.draw.rect(play_sur_face, help_color[1], help_size)
         else:
             pygame.draw.rect(play_sur_face, help_color[0], help_size)
+        for f in food:
+            pygame.draw.rect(play_sur_face, food_color, (f[0]+6, f[1]+6, 8, 8))
+        for c in cell:
+            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
+        play_sur_face.blit(pygame.image.load("image/germ.bmp"), (germ[0], germ[1]))
         pygame.display.flip()
 
     return
@@ -427,12 +429,6 @@ def move(play_sur_face, a, b, num):
     time = 0
     di = ''
     dx = [[20,0], [-20,0], [0,-20], [0,20]]
-    # 颜色可以自定义
-    germ_color = (0, 158, 128)
-    keys_color = (255, 255, 0)
-    cell_color = (0, 0, 0)
-    back_color = (255, 235, 215)
-    wall_color = (200, 0, 0)
     # 保卫细胞
     cell = []
     keys = []
@@ -508,17 +504,17 @@ def move(play_sur_face, a, b, num):
         pygame.draw.rect(play_sur_face, keys_color, Rect(door[0], door[1], 20, 20)) 
         for w in wall:
             pygame.draw.rect(play_sur_face, wall_color, Rect(w[0], w[1], 20, 20)) 
-        for k in keys:
-            pygame.draw.rect(play_sur_face, keys_color, (k[0]+6, k[1]+3, 8, 12))
-        for c in cell:
-            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
-        pygame.draw.rect(play_sur_face, germ_color, (germ[0], germ[1], 20, 20))
-
         mouse = pygame.mouse.get_pos()
         if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
             pygame.draw.rect(play_sur_face, help_color[1], help_size)
         else:
             pygame.draw.rect(play_sur_face, help_color[0], help_size)
+        for k in keys:
+            pygame.draw.rect(play_sur_face, keys_color, (k[0]+6, k[1]+3, 8, 12))
+        for c in cell:
+            pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
+        play_sur_face.blit(pygame.image.load("image/germ.bmp"), (germ[0], germ[1]))
+
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
