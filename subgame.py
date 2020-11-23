@@ -30,12 +30,14 @@ def show_help(play_sur_face, clock, place):
 
 # 颜色可以自定义
 germ_color = (0, 158, 128)
-keys_color = (0, 0, 255)
+keys_color = (0, 255, 0)
 food_color = (255, 255, 0)
+abil_color = (0, 0, 255)
 cell_color = (0, 0, 0)
 back_color = (255, 235, 215)
 wall_color = (200, 0, 0)
 bar_color  = (238, 207, 161)
+picture = {'':pygame.image.load("image/germ.bmp"), 0:pygame.image.load("image/germ.bmp"), 1:pygame.image.load("image/germ_left.bmp"), 2:pygame.image.load("image/germ_up.bmp"), 3:pygame.image.load("image/germ_down.bmp")}
 
 # 第一个小游戏，细菌从皮肤破损中进入人体
 def first_game(play_sur_face):
@@ -61,11 +63,8 @@ def first_game(play_sur_face):
     pygame.display.update()
 
     bg = pygame.transform.scale(pygame.image.load("image/first.jpg"), (5500, 600))
-    bd = pygame.image.load("image/germ.bmp")
-    bar_up = pygame.image.load("image/photo.png")
-    bar_down = pygame.image.load("image/photo.png")
     play_sur_face.blit(bg, (-time, 0))
-    play_sur_face.blit(bd, (bird[0], bird[1]))
+    play_sur_face.blit(picture[0], (bird[0], bird[1]))
     pygame.display.update()
     clock = pygame.time.Clock()
 
@@ -174,7 +173,7 @@ def first_game(play_sur_face):
             pygame.draw.rect(play_sur_face, help_color[0], help_size)
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         # pygame.draw.rect(play_sur_face, (0,0,0), (bird[0], bird[1], 20,20))
-        play_sur_face.blit(bd, (bird[0], bird[1]))
+        play_sur_face.blit(picture[0], (bird[0], bird[1]))
         pygame.display.update()
 
         for b in bar:
@@ -200,6 +199,10 @@ def snake_game(play_sur_face, level, num):
     food = [gen()]
     cell = []
     dx = [[20,0], [-20,0], [0,-20], [0,20], [0,0]]
+    got = False
+    abil = []
+    if random.randint(1, 3) == 1:
+        abil.append(gen())
 
 
     font = pygame.font.SysFont("simhei", 12)
@@ -215,7 +218,8 @@ def snake_game(play_sur_face, level, num):
         time += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return level, num
+                pygame.quit()
+                sys.exit()
             elif event.type == MOUSEBUTTONDOWN:
                 mouse = pygame.mouse.get_pos()
                 if help_size[0] + help_size[2] > mouse[0] > help_size[0] and help_size[1] + help_size[3] > mouse[1] > help_size[1]:
@@ -224,7 +228,7 @@ def snake_game(play_sur_face, level, num):
                 if event.key == K_ESCAPE:
                     if num != 1:
                         num = int((0.8+0.02*level)*num)
-                    return level, num
+                    return level, num, False
                 if event.key == K_RIGHT or event.key == ord('d'):
                     di = 0
                 if event.key == K_LEFT or event.key == ord('a'):
@@ -237,7 +241,7 @@ def snake_game(play_sur_face, level, num):
                     num *= 2
                 if event.key == ord('l'):
                     num *= 100
-                    return level+1, num
+                    return level+1, num, True
                 if event.key == ord('h'):
                     show_help(play_sur_face, clock, 1)
         
@@ -246,7 +250,6 @@ def snake_game(play_sur_face, level, num):
             germ[0] += dx[di][0]
             germ[1] += dx[di][1]
             
-        # 处理细菌数量
         if germ in food:
             food.remove(germ)
             food.append(gen())
@@ -256,9 +259,12 @@ def snake_game(play_sur_face, level, num):
                 num = int(num * 1.25)
             else:
                 num = int(num * 1.1)
+        if germ in abil:
+            got = True
+            abil.remove(germ)
 
         if num >= 100 ** (level+1):
-            return level+1, num
+            return level+1, num, got
         while num / (100 ** level) * (level+1) >= 20 * len(cell):
             cell.append(gen())
         while num / (100 ** level) >= 20 * len(food):
@@ -268,7 +274,7 @@ def snake_game(play_sur_face, level, num):
         if germ[0] < 0 or germ[1] < 0 or germ[0] >= 600 or germ[1] >= 600:
             if num != 1:
                 num = int(0.5*num)
-            return level, num
+            return level, num, False
         
         for i in range(len(cell)):
             if time % time_gap == i % (10 - level):
@@ -281,7 +287,7 @@ def snake_game(play_sur_face, level, num):
         if germ in cell and time % time_gap == 0:
             num = int((0.8+0.02*level)*num) + 1
         if num == 0:
-            return level, 0
+            return level, 0, False
 
         pygame.draw.rect(play_sur_face, back_color, (0, 0, 600, 600))
         mouse = pygame.mouse.get_pos()
@@ -293,12 +299,16 @@ def snake_game(play_sur_face, level, num):
             pygame.draw.rect(play_sur_face, cell_color, (c[0]+1, c[1]+1, 18, 18))
         for f in food:
             pygame.draw.rect(play_sur_face, food_color, (f[0]+1, f[1]+1, 18, 18))
-        play_sur_face.blit(pygame.image.load("image/germ.bmp"), (germ[0], germ[1]))
+        for a in abil:
+            pygame.draw.rect(play_sur_face, abil_color, (a[0], a[1], 20, 20))
+        if got:
+            play_sur_face.blit(font.render("已获得新能力，通关后领取。", True, (0, 0, 0)), (200, 10))
+        play_sur_face.blit(picture[di], (germ[0], germ[1]))
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
-    return level+1, num
+    return level+1, num, got
 
 # 吃豆子
 def beens_game(play_sur_face, level, num):
@@ -332,6 +342,10 @@ def beens_game(play_sur_face, level, num):
             if w[i][j] == 0:
                 food.append([i*20-10, j*20-10])
     food.remove(germ)
+    got = False
+    abil = []
+    if random.randint(1, 3) == 1:
+        abil.append(gen_germ())
 
     font = pygame.font.SysFont("simhei", 12)
     play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
@@ -353,7 +367,7 @@ def beens_game(play_sur_face, level, num):
                 if event.key == K_ESCAPE:
                     if num != 1:
                         num = int((0.8+0.02*level)*num)
-                    return level, num
+                    return level, num, False
                 if event.key == K_RIGHT or event.key == ord('d'):
                     di = 0
                 if event.key == K_LEFT or event.key == ord('a'):
@@ -364,7 +378,7 @@ def beens_game(play_sur_face, level, num):
                     di = 3
                 if event.key == ord('l'):
                     num *= 100
-                    return level+1, num
+                    return level+1, num, True
                 if event.key == ord('h'):
                     show_help(play_sur_face, clock, 1)
 
@@ -379,8 +393,11 @@ def beens_game(play_sur_face, level, num):
             if germ in food:
                 food.remove(germ)
                 num += 100 ** level
-            if len(food) < 30:
-                return level+1, num
+            if len(food) < 20:
+                return level+1, num, got
+            if germ in abil:
+                got = True
+                abil.remove(germ)
 
         # 开始绘制地图
         play_sur_face.fill(back_color)
@@ -405,12 +422,15 @@ def beens_game(play_sur_face, level, num):
             pygame.draw.rect(play_sur_face, food_color, (f[0]+6, f[1]+6, 8, 8))
         for c in cell:
             pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
+        for a in abil:
+            pygame.draw.rect(play_sur_face, abil_color, (a[0], a[1], 20, 20))
+        if got:
+            play_sur_face.blit(font.render("已获得新能力，通关后领取。", True, (0, 0, 0)), (200, 10))
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
-        play_sur_face.blit(pygame.image.load("image/germ.bmp"), (germ[0], germ[1]))
+        play_sur_face.blit(picture[di], (germ[0], germ[1]))
         pygame.display.flip()
 
-    return
 
 # 细菌传播，从a到b
 def move(play_sur_face, a, b, num):
@@ -436,6 +456,10 @@ def move(play_sur_face, a, b, num):
         cell.append(gen())
     for i in range(b+1):
         keys.append(gen())
+    got = False
+    abil = []
+    if random.randint(1, 3) == 1:
+        abil.append(gen())
 
     font = pygame.font.SysFont("simhei", 12)
     play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
@@ -457,7 +481,7 @@ def move(play_sur_face, a, b, num):
                 if event.key == K_ESCAPE:
                     if num != 1:
                         num = int(0.5*num)
-                    return a, num
+                    return a, num, False
                 if event.key == K_RIGHT or event.key == ord('d'):
                     di = 0
                 if event.key == K_LEFT or event.key == ord('a'):
@@ -472,7 +496,7 @@ def move(play_sur_face, a, b, num):
                     else:
                         germ = door
                 if event.key == ord('l'):
-                    return b, num
+                    return b, num, True
                 if event.key == ord('h'):
                     show_help(play_sur_face, clock, 1)
 
@@ -481,15 +505,20 @@ def move(play_sur_face, a, b, num):
             tmp = [germ[0]+dx[di][0], germ[1]+dx[di][1]]
             if tmp not in wall:
                 germ = tmp
-            if germ in cell and num > 1:
+            if germ in cell:
                 num = int(0.85 * num)
+                if num == 0:
+                    return a, 0, False
             # di = ''
             if germ in keys:
                 keys.remove(germ)
                 if len(keys) == 0:
                     wall.remove(door)
             if germ == door:
-                return b, num
+                return b, num, got
+            if germ in abil:
+                got = True
+                abil.remove(germ)
 
         # 改变每个保卫细胞的状态
         for i in range(len(cell)):
@@ -513,13 +542,17 @@ def move(play_sur_face, a, b, num):
             pygame.draw.rect(play_sur_face, keys_color, (k[0]+6, k[1]+3, 8, 12))
         for c in cell:
             pygame.draw.rect(play_sur_face, cell_color, (c[0], c[1], 20, 20))
-        play_sur_face.blit(pygame.image.load("image/germ.bmp"), (germ[0], germ[1]))
+        play_sur_face.blit(picture[di], (germ[0], germ[1]))
+        for a in abil:
+            pygame.draw.rect(play_sur_face, abil_color, (a[0], a[1], 20, 20))
+        if got:
+            play_sur_face.blit(font.render("已获得新能力，通关后领取。", True, (0, 0, 0)), (200, 10))
 
         play_sur_face.blit(font.render("Help", True, (0,0,0)), (help_size[0]+3, help_size[1]+1))
         play_sur_face.blit(font.render("数量："+str(num), True, (0, 0, 0)), (10, 10))
         pygame.display.flip()
 
-    return a, num
+    return a, num, got
 
 
 def getNeighbours(wall, node):

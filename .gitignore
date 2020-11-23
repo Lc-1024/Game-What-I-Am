@@ -1,6 +1,7 @@
 # my ignore
 reference/
 *.pdf
+*.ico
 
 
 # Byte-compiled / optimized / DLL files
