@@ -124,7 +124,7 @@ class game:
             pygame.display.update()
         
         if 11 >= choice >= 9:
-            self.end = choice - 9
+            self.end = choice - 8
         else:
             self.got[choice] = True
 
@@ -209,7 +209,7 @@ font = pygame.font.SysFont("simhei", 20) # simhei是简体字，也可以到C:/W
 tip_font = pygame.font.SysFont("simhei", 12)
 
 germ = game()
-germ.place = 3
+germ.place = 1
 # 这是游戏框
 play_sur_face = pygame.display.set_mode(size)
 # 设置标题
